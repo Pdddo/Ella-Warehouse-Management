@@ -12,9 +12,35 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+
+                    <!-- Link ke halaman Dashboard -->
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    
+                    <!-- Link ke halaman Manajemen Produk -->
+                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                        {{ __('Produk') }}
+                    </x-nav-link>
+
+                    <!-- Link ke halaman Manajemen Transaksi -->
+                    @if(auth()->user()->role === 'staff' || auth()->user()->role === 'manager')
+                        <x-nav-link :href="route('transactions.index')" :active="request()->routeIs('transactions.*')">
+                            {{ __('Transaksi') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->role === 'manager')
+                        <x-nav-link :href="route('restock-orders.index')" :active="request()->routeIs('restock-orders.*')">
+                            {{ __('Restock Order') }}
+                        </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->role === 'supplier')
+                        <x-nav-link :href="route('supplier.dashboard')" :active="request()->routeIs('supplier.dashboard')">
+                            {{ __('Order Masuk') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 

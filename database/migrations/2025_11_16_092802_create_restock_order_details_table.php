@@ -26,7 +26,7 @@ return new class extends Migration
 
             // Jumlah produk yang dipesan
             $table->integer('quantity');
-
+            $table->string('unit', 50); 
             $table->timestamps();
         });
     }

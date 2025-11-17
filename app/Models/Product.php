@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; // <--- 1. TAMBAHKAN INI
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -10,16 +10,22 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category_id',
-        'sku',
-        'name',
-        'description',
-        'buy_price',
-        'sell_price',
-        'stock',
-        'min_stock',
-        'unit',
-        'rack_location',
-        'image',
+        'category_id', 'sku', 'name', 'description', 'buy_price',
+        'sell_price', 'stock', 'min_stock', 'unit', 'rack_location', 'image'
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function transactionDetails()
+    {
+        return $this->hasMany(TransactionDetail::class);
+    }
+
+    public function restockOrderDetails()
+    {
+        return $this->hasMany(RestockOrderDetail::class);
+    }
 }
