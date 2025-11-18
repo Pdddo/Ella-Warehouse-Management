@@ -7,19 +7,20 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\RestockOrderController;
 use App\Http\Controllers\SupplierOrderController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 
     // rute untuk admin dan manager
@@ -33,6 +34,7 @@ Route::middleware('auth', 'verified')->group(function () {
     // rute untuk staff dan manager
     Route::middleware(['role:staff,manager'])->group(function () {
         Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         
         // transaksi barang masuk dan keluar
         // Rute untuk Barang Masuk
@@ -47,13 +49,14 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::middleware(['role:manager'])->group(function () {
         Route::resource('restock-orders', RestockOrderController::class)->except(['edit', 'update']);
         Route::post('/restock-orders/{restockOrder}/status', [RestockOrderController::class, 'updateStatus'])->name('restock-orders.updateStatus');
+        Route::resource('categories', CategoryController::class);
+        Route::post('/transactions/{transaction}/approve', [TransactionController::class, 'approve'])->name('transactions.approve');
     });
 
      // Grup Rute KHUSUS untuk Supplier
-    Route::middleware(['role:supplier'])->prefix('supplier')->name('supplier.')->group(function () {
-        Route::get('/dashboard', [SupplierOrderController::class, 'index'])->name('dashboard');
-        Route::post('/orders/{restockOrder}/confirm', [SupplierOrderController::class, 'confirm'])->name('orders.confirm');
-        Route::post('/orders/{restockOrder}/deny', [SupplierOrderController::class, 'deny'])->name('orders.deny');
+    Route::middleware(['auth', 'verified', 'role:supplier'])->group(function () {
+        Route::post('/supplier/orders/{restockOrder}/confirm', [SupplierOrderController::class, 'confirm'])->name('supplier.orders.confirm');
+        Route::post('/supplier/orders/{restockOrder}/deny', [SupplierOrderController::class, 'deny'])->name('supplier.orders.deny');
     });
 });
 

@@ -55,26 +55,26 @@ class RestockOrderController extends Controller
             DB::beginTransaction();
 
             $order = RestockOrder::create([
-                'po_number' => 'PO-' . date('Ym') . '-' . Str::upper(Str::random(5)),
-                'manager_id' => Auth::id(), // Manager yang sedang login
+                'po_number' => 'PO-' . date('Ym') . '-' . \Illuminate\Support\Str::random(6),
+                'manager_id' => Auth::id(),
                 'supplier_id' => $request->supplier_id,
                 'order_date' => $request->order_date,
                 'expected_delivery_date' => $request->expected_delivery_date,
+                'status' => 'pending',
                 'notes' => $request->notes,
-                'status' => 'pending', // Status awal adalah 'pending'
             ]);
 
-            foreach ($request->products as $item) {
+            foreach ($request->products as $product) {
                 $order->details()->create([
-                    'product_id' => $item['id'],
-                    'quantity' => $item['quantity'],
-                    'unit' => $item['unit'],
+                    'product_id' => $product['id'],
+                    'quantity'   => $product['quantity'],
+                    'unit'       => $product['unit'],
                 ]);
             }
 
             DB::commit();
 
-            return redirect()->route('restock-orders.index')->with('success', 'Order restock berhasil dibuat.');
+            return redirect()->route('restock-orders.index')->with('success', 'Restock order berhasil dibuat.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -122,49 +122,12 @@ class RestockOrderController extends Controller
 
     public function updateStatus(Request $request, RestockOrder $restockOrder)
     {
-    $request->validate(['status' => 'required|in:in_transit,received']);
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,in_transit,received,cancelled'
+        ]);
+        
+        $restockOrder->update(['status' => $request->status]);
 
-    $newStatus = $request->status;
-    $allowedStatuses = [];
-
-    // Logika alur status
-    if ($restockOrder->status === 'confirmed') {
-        $allowedStatuses = ['in_transit'];
-    } elseif ($restockOrder->status === 'in_transit') {
-        $allowedStatuses = ['received'];
-    }
-
-    if (!in_array($newStatus, $allowedStatuses)) {
-        return back()->with('error', "Status tidak dapat diubah dari '{$restockOrder->status}' ke '{$newStatus}'.");
-    }
-
-    // Jika status adalah 'received', jalankan logika penambahan stok
-    if ($newStatus === 'received') {
-        try {
-            DB::beginTransaction();
-            
-            // Update status order
-            $restockOrder->update(['status' => 'received']);
-            
-            // Buat Transaksi Barang Masuk
-            $transaction = \App\Models\Transaction::create([ /* ... kode sama seperti di metode receive() lama ... */ ]);
-            
-            // Update stok produk
-            foreach ($restockOrder->details as $detail) {
-                $transaction->details()->create([/*...*/]);
-                \App\Models\Product::find($detail->product_id)->increment('stock', $detail->quantity);
-            }
-            
-            DB::commit();
-            return redirect()->route('restock-orders.show', $restockOrder)->with('success', 'Order diterima dan stok telah diperbarui.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    } else {
-        $restockOrder->update(['status' => $newStatus]);
-        return back()->with('success', 'Status order berhasil diperbarui.');
-        }
+        return redirect()->route('restock-orders.index')->with('success', 'Status order berhasil diubah menjadi ' . ucfirst($request->status) . '.');
     }
 }

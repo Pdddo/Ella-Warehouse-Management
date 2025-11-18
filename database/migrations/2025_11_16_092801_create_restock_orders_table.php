@@ -20,18 +20,18 @@ return new class extends Migration
             // ID Manager yang membuat pesanan ini. Foreign key ke tabel 'users'.
             $table->foreignId('manager_id')
                   ->comment('User ID of the manager who created the order')
-                  ->constrained('users') // Memastikan ID ini ada di tabel 'users'
-                  ->onDelete('cascade'); // Jika user manager dihapus, pesanan ini juga terhapus
+                  ->constrained('users')
+                  ->onDelete('cascade');
 
             // ID Supplier yang dituju. Foreign key ke tabel 'users'.
             $table->foreignId('supplier_id')
                   ->comment('User ID of the supplier for this order')
-                  ->constrained('users') // Memastikan ID ini ada di tabel 'users'
+                  ->constrained('users')
                   ->onDelete('cascade');
 
-            $table->date('order_date'); // Tanggal pesanan dibuat
-            $table->date('expected_delivery_date')->nullable(); // Tanggal perkiraan barang tiba
-            $table->text('notes')->nullable(); // Catatan tambahan
+            $table->date('order_date');
+            $table->date('expected_delivery_date')->nullable();
+            $table->text('notes')->nullable();
 
             // Status pesanan. Enum membatasi nilainya hanya pada yang kita tentukan.
             $table->enum('status', ['pending', 'confirmed', 'in_transit', 'received']);

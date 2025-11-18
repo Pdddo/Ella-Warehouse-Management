@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\RestockOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Transaction;
 
 class SupplierOrderController extends Controller
 {

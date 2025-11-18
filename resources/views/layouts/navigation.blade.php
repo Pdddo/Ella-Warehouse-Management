@@ -10,37 +10,37 @@
                     </a>
                 </div>
 
-                <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
 
-                    <!-- Link ke halaman Dashboard -->
+                    {{-- Link Dashboard: Ditampilkan untuk SEMUA peran yang sudah login --}}
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     
-                    <!-- Link ke halaman Manajemen Produk -->
-                    <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
-                        {{ __('Produk') }}
-                    </x-nav-link>
-
-                    <!-- Link ke halaman Manajemen Transaksi -->
-                    @if(auth()->user()->role === 'staff' || auth()->user()->role === 'manager')
-                        <x-nav-link :href="route('transactions.index')" :active="request()->routeIs('transactions.*')">
-                            {{ __('Transaksi') }}
+                    {{-- Link untuk Admin & Manager --}}
+                    @if(in_array(auth()->user()->role, ['admin', 'manager']))
+                        <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                            {{ __('Produk') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                            {{ __('Kategori') }}
                         </x-nav-link>
                     @endif
-
+                    
+                    {{-- Link untuk Manager --}}
                     @if(auth()->user()->role === 'manager')
                         <x-nav-link :href="route('restock-orders.index')" :active="request()->routeIs('restock-orders.*')">
                             {{ __('Restock Order') }}
                         </x-nav-link>
                     @endif
 
-                    @if(auth()->user()->role === 'supplier')
-                        <x-nav-link :href="route('supplier.dashboard')" :active="request()->routeIs('supplier.dashboard')">
-                            {{ __('Order Masuk') }}
+                    {{-- Link untuk Staff & Manager --}}
+                    @if(in_array(auth()->user()->role, ['staff', 'manager']))
+                        <x-nav-link :href="route('transactions.index')" :active="request()->routeIs('transactions.*')">
+                            {{ __('Transaksi') }}
                         </x-nav-link>
                     @endif
+
                 </div>
             </div>
 
@@ -93,9 +93,29 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
+
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @if(in_array(auth()->user()->role, ['admin', 'manager']))
+                <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                    {{ __('Produk') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
+                    {{ __('Kategori') }}
+                </x-responsive-nav-link>
+            @endif
+            @if(in_array(auth()->user()->role, ['staff', 'manager']))
+                <x-responsive-nav-link :href="route('transactions.index')" :active="request()->routeIs('transactions.*')">
+                    {{ __('Transaksi') }}
+                </x-responsive-nav-link>
+            @endif
+            @if(auth()->user()->role === 'manager')
+                <x-responsive-nav-link :href="route('restock-orders.index')" :active="request()->routeIs('restock-orders.*')">
+                    {{ __('Restock Order') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -104,16 +124,12 @@
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
                 <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
             </div>
-
             <div class="mt-3 space-y-1">
                 <x-responsive-nav-link :href="route('profile.edit')">
                     {{ __('Profile') }}
                 </x-responsive-nav-link>
-
-                <!-- Authentication -->
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
                     <x-responsive-nav-link :href="route('logout')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">

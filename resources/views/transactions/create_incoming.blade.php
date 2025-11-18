@@ -5,122 +5,138 @@
         </h2>
     </x-slot>
 
-    <div class="py-12" x-data="transactionForm()">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    {{-- Data dari PHP akan dimasukkan ke dalam elemen data tersembunyi, ini lebih bersih --}}
+    <script id="prefilled-data" type="application/json">
+        @if(isset($prefilledOrder))
+            {!! json_encode([
+                'supplier_id' => $prefilledOrder->supplier_id,
+                'notes' => 'Berdasarkan Restock Order ' . $prefilledOrder->po_number,
+                'products' => $prefilledOrder->details->map(fn($detail) => [
+                    'id' => $detail->product_id,
+                    'name' => $detail->product->name,
+                    'quantity' => $detail->quantity
+                ])
+            ]) !!}
+        @else
+            null
+        @endif
+    </script>
+
+    {{-- x-data sekarang memanggil fungsi yang lebih bersih --}}
+    <div class="py-12" x-data="incomingTransactionForm()">
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
             <form method="POST" action="{{ route('transactions.store.incoming') }}">
                 @csrf
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
                         @include('partials.alert')
-                        
-                        <!-- Form Tambah Produk -->
-                        <div class="border-b pb-6 mb-6">
-                            <h3 class="text-lg font-medium mb-2">Tambah Produk</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                                <div class="col-span-2">
-                                    <label for="product_id" class="block text-sm font-medium text-gray-700">Pilih Produk</label>
-                                    <select x-model="selectedProduct" id="product_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                        <option value="">-- Pilih Produk --</option>
-                                        @foreach ($products as $product)
-                                            <option value="{{ $product->id }}" data-name="{{ $product->name }}" data-unit="{{ $product->unit }}">{{ $product->name }} (Stok: {{ $product->stock }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label for="quantity" class="block text-sm font-medium text-gray-700">Jumlah</label>
-                                    <input type="number" x-model.number="quantity" min="1" id="quantity" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
-                                </div>
-                                <button type="button" @click="addProduct()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-500">Tambah</button>
+
+                        <!-- Info Utama Transaksi -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <x-input-label for="supplier_id" :value="__('Pilih Supplier')" />
+                                {{-- x-model tetap di sini untuk mengikat nilai --}}
+                                <select name="supplier_id" id="supplier_id" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" x-model="selectedSupplier" required>
+                                    <option value="">-- Pilih Supplier --</option>
+                                    @foreach($suppliers as $supplier)
+                                        <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <x-input-label for="transaction_date" :value="__('Tanggal Transaksi')" />
+                                <input type="date" name="transaction_date" value="{{ old('transaction_date', date('Y-m-d')) }}" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
                             </div>
                         </div>
 
-                        <!-- Daftar Produk yang Ditambahkan -->
-                        <h3 class="text-lg font-medium mb-2">Daftar Barang Masuk</h3>
-                        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                        {{-- Panel Tambah Produk Manual disembunyikan jika form terisi otomatis --}}
+                        <template x-if="!isPrefilled">
+                            <div class="border-y py-6 my-6">
+                                <h3 class="text-lg font-medium mb-2">Tambah Produk Manual</h3>
+                                <!-- ... form tambah produk manual ... -->
+                            </div>
+                        </template>
+
+                        <!-- Daftar Produk Transaksi -->
+                        <h3 class="text-lg font-medium mb-2 mt-6">Daftar Produk Transaksi</h3>
+                        <div class="relative overflow-x-auto rounded-lg border">
                             <table class="w-full text-sm text-left text-gray-500">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3">Nama Produk</th>
-                                        <th class="px-6 py-3">Jumlah</th>
-                                        <th class="px-6 py-3">Aksi</th>
-                                    </tr>
+                                    <tr><th class="px-6 py-3">Nama Produk</th><th class="px-6 py-3 text-right">Jumlah</th></tr>
                                 </thead>
                                 <tbody>
+                                    {{-- Loop ini akan membuat input hidden secara otomatis --}}
                                     <template x-for="(item, index) in items" :key="index">
                                         <tr>
-                                            <td class="px-6 py-4">
+                                            <td class="px-6 py-4 border-b">
                                                 <input type="hidden" :name="'products[' + index + '][id]'" :value="item.id">
                                                 <span x-text="item.name"></span>
                                             </td>
-                                            <td class="px-6 py-4">
+                                            <td class="px-6 py-4 border-b text-right">
                                                 <input type="hidden" :name="'products[' + index + '][quantity]'" :value="item.quantity">
-                                                <span x-text="item.quantity + ' ' + item.unit"></span>
-                                            </td>
-                                            <td class="px-6 py-4">
-                                                <button type="button" @click="removeItem(index)" class="text-red-600 hover:underline">Hapus</button>
+                                                <span x-text="item.quantity"></span>
                                             </td>
                                         </tr>
                                     </template>
                                     <template x-if="items.length === 0">
-                                        <tr><td colspan="3" class="text-center py-4">Belum ada produk yang ditambahkan.</td></tr>
+                                        <tr><td colspan="2" class="text-center py-4 border-b">Belum ada produk.</td></tr>
                                     </template>
                                 </tbody>
                             </table>
                         </div>
+                        
+                        <div class="mt-6">
+                            <x-input-label for="notes" :value="__('Catatan (Opsional)')" />
+                            {{-- PERBAIKAN: Menggunakan x-text untuk mengisi, bukan x-model --}}
+                            <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" x-text="notes"></textarea>
+                        </div>
 
-                        <!-- Catatan & Tombol Simpan -->
-                        <div class="mt-6 border-t pt-6">
-                            <div>
-                                <x-input-label for="notes" :value="__('Catatan (Opsional)')" />
-                                <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">{{ old('notes') }}</textarea>
-                            </div>
-                            <div class="flex items-center justify-end mt-4">
-                                <a href="{{ route('transactions.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</a>
-                                <x-primary-button type="submit" x-bind:disabled="items.length === 0">
-                                    Simpan Transaksi
-                                </x-primary-button>
-                            </div>
+                        <div class="flex items-center justify-end mt-4">
+                            <a href="{{ route('transactions.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">Batal</a>
+                            <x-primary-button type="submit" x-bind:disabled="items.length === 0">
+                                Simpan Transaksi (Pending)
+                            </x-primary-button>
                         </div>
                     </div>
                 </div>
             </form>
         </div>
     </div>
+    
+    {{-- ========================================================== --}}
+    {{-- BLOK SCRIPT YANG SEPENUHNYA DIPERBARUI --}}
+    {{-- ========================================================== --}}
     <script>
-        function transactionForm() {
+        function incomingTransactionForm() {
             return {
-                selectedProduct: '',
-                quantity: 1,
+                // Mendefinisikan semua properti state di awal
+                selectedSupplier: '',
                 items: [],
-                addProduct() {
-                    if (!this.selectedProduct || this.quantity <= 0) {
-                        alert('Silakan pilih produk dan isi jumlah dengan benar.');
+                notes: '',
+                isPrefilled: false,
+
+                // Fungsi init dipanggil secara otomatis oleh Alpine.js
+                init() {
+                    // 1. Ambil data JSON dari elemen script
+                    const dataElement = document.getElementById('prefilled-data');
+                    if (!dataElement || !dataElement.textContent.trim()) {
                         return;
                     }
-
-                    const selectElement = document.getElementById('product_id');
-                    const selectedOption = selectElement.options[selectElement.selectedIndex];
-                    const productName = selectedOption.getAttribute('data-name');
-                    const productUnit = selectedOption.getAttribute('data-unit');
                     
-                    const existingItem = this.items.find(item => item.id == this.selectedProduct);
-                    if(existingItem) {
-                        existingItem.quantity += this.quantity;
-                    } else {
-                        this.items.push({
-                            id: this.selectedProduct,
-                            name: productName,
-                            quantity: this.quantity,
-                            unit: productUnit
-                        });
-                    }
+                    try {
+                        const prefilledData = JSON.parse(dataElement.textContent);
 
-                    this.selectedProduct = '';
-                    this.quantity = 1;
+                        // 2. Cek apakah data valid
+                        if (prefilledData && prefilledData.products) {
+                            this.isPrefilled = true;
+                            this.selectedSupplier = prefilledData.supplier_id;
+                            this.items = prefilledData.products;
+                            this.notes = prefilledData.notes;
+                        }
+                    } catch (e) {
+                        console.error('Gagal mem-parsing data pre-fill:', e);
+                    }
                 },
-                removeItem(index) {
-                    this.items.splice(index, 1);
-                }
             }
         }
     </script>

@@ -14,6 +14,7 @@ class RestockOrderDetail extends Model
         'restock_order_id',
         'product_id',
         'quantity',
+        'unit',
     ];
 
     // Mendefinisikan relasi "belongsTo" (milik dari).
