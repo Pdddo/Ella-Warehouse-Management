@@ -29,6 +29,10 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::resource('categories', CategoryController::class);
         // Fitur "Manajemen Produk"
         Route::resource('products', ProductController::class);
+        // Route khusus untuk Admin menyetujui supplier
+        Route::patch('/admin/suppliers/{id}/approve', [DashboardController::class, 'approveSupplier'])
+            ->name('admin.suppliers.approve')
+            ->middleware('role:admin');
     });
 
     // rute untuk staff dan manager

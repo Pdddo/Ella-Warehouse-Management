@@ -8,6 +8,7 @@ use App\Models\RestockOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class DashboardController extends Controller
 {
@@ -42,7 +43,11 @@ class DashboardController extends Controller
 
         $lowStockProducts = Product::whereColumn('stock', '<=', 'min_stock')->orderBy('stock', 'asc')->limit(5)->get();
 
-        return view('dashboards.admin', compact('totalProducts', 'transactionsThisMonth', 'totalStockValue', 'lowStockProducts'));
+        $pendingSuppliers = User::where('role', 'supplier')
+                                ->where('is_approved', false)
+                                ->latest()
+                                ->get();
+        return view('dashboards.admin', compact('totalProducts', 'transactionsThisMonth', 'totalStockValue', 'lowStockProducts', 'pendingSuppliers'));
     }
 
     // Data dan view untuk dashboard Warehouse Manager.
@@ -51,8 +56,6 @@ class DashboardController extends Controller
         $totalItems = Product::sum('stock');
         $lowStockCount = Product::whereColumn('stock', '<=', 'min_stock')->count();
         
-        // Sistem saat ini tidak memiliki status 'pending approval' untuk transaksi.
-        // Menampilkan 5 transaksi terakhir sebagai alternatif.
         $recentTransactions = Transaction::with('user')->latest()->take(5)->get();
 
         $ongoingRestocks = RestockOrder::whereIn('status', ['pending', 'confirmed', 'in_transit'])->latest()->get();
@@ -92,5 +95,20 @@ class DashboardController extends Controller
             ->paginate(5);
 
         return view('dashboards.supplier', compact('pendingConfirmationOrders', 'shipmentHistory'));
+    }
+
+
+    public function approveSupplier($id)
+    {
+        $user = User::findOrFail($id);
+        
+        //pastikan dulu user tersebut betul supplier
+        if ($user->role !== 'supplier') {
+            return back()->with('error', 'User ini bukan supplier.');
+        }
+
+        $user->update(['is_approved' => true]);
+
+        return back()->with('success', 'Akun supplier ' . $user->name . ' berhasil disetujui.');
     }
 }

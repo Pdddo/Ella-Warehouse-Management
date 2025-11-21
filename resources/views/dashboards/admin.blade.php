@@ -36,7 +36,7 @@
             </div>
 
             <!-- Low Stock Alert -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-medium text-red-600 mb-4">Peringatan Stok Rendah</h3>
                     @if($lowStockProducts->isEmpty())
@@ -56,6 +56,47 @@
                     @endif
                 </div>
             </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
+            <div class="p-6 text-gray-900">
+                <h3 class="text-lg font-semibold mb-4">Menunggu Persetujuan Supplier</h3>
+                
+                @if($pendingSuppliers->isEmpty())
+                    <p class="text-gray-500">Tidak ada pendaftar supplier baru.</p>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Nama</th>
+                                    <th class="px-4 py-2 text-left">Email</th>
+                                    <th class="px-4 py-2 text-left">Tanggal Daftar</th>
+                                    <th class="px-4 py-2 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($pendingSuppliers as $supplier)
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2">{{ $supplier->name }}</td>
+                                        <td class="px-4 py-2">{{ $supplier->email }}</td>
+                                        <td class="px-4 py-2">{{ $supplier->created_at->format('d M Y') }}</td>
+                                        <td class="px-4 py-2 text-center">
+                                            <form action="{{ route('admin.suppliers.approve', $supplier->id) }}" method="POST">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-sm" onclick="return confirm('Setujui akun supplier ini?')">
+                                                    Approve
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        </div>
         </div>
     </div>
 </x-app-layout>

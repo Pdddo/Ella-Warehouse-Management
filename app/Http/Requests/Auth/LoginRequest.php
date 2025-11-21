@@ -49,6 +49,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        //cek
+        $user = Auth::user();
+        if ($user->role === 'supplier' && !$user->is_approved) {
+            Auth::logout(); // logout paksa
+            
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda belum disetujui oleh Admin. Mohon tunggu.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
