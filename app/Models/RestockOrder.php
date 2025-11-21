@@ -19,6 +19,7 @@ class RestockOrder extends Model
         'expected_delivery_date',
         'notes',
         'status',
+        'processed_at',
     ];
 
     protected function casts(): array

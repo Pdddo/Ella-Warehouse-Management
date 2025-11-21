@@ -21,7 +21,6 @@ class TransactionController extends Controller
         $receivedOrders = RestockOrder::with('supplier')
                                     ->where('status', 'received')
                                     ->whereNull('processed_at')
-                                    ->latest()
                                     ->get();
 
         return view('transactions.index', compact('incoming', 'outgoing', 'receivedOrders'));
@@ -58,12 +57,27 @@ class TransactionController extends Controller
                 'notes'            => $request->notes,
                 'supplier_id'      => $request->supplier_id,
             ]);
+
             foreach ($request->products as $product) {
-                $transaction->details()->create(['product_id' => $product['id'], 'quantity' => $product['quantity']]);
+                $transaction->details()->create(
+                    ['product_id' => $product['id'],
+                    'quantity' => $product['quantity']]);
             }
+
+            if ($request->filled('restock_order_id')) {
+                $restockOrder = RestockOrder::find($request->restock_order_id);
+                if ($restockOrder) {
+                    $restockOrder->update([
+                        'processed_at' => now()
+                    ]);
+                }
+            }
+
             DB::commit();
             return redirect()->route('transactions.index')->with('success', 'Transaksi barang masuk berhasil dibuat dan menunggu persetujuan.');
-        } catch (\Exception $e) {
+        } 
+        
+        catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal membuat transaksi: ' . $e->getMessage())->withInput();
         }
@@ -131,6 +145,78 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal menyetujui transaksi: ' . $e->getMessage());
+        }
+    }
+
+    public function createOutgoing()
+    {
+        // Hanya ambil produk yang stoknya > 0
+        $products = Product::where('stock', '>', 0)->orderBy('name')->get();
+        return view('transactions.create_outgoing', compact('products'));
+    }
+
+    public function storeOutgoing(Request $request)
+    {
+        $request->validate([
+            'transaction_date' => 'required|date',
+            'customer_name'    => 'required|string|max:255',
+            'products.*.id'    => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $transaction = Transaction::create([
+                'transaction_number' => 'TR-OUT-' . date('Ymd') . '-' . \Illuminate\Support\Str::random(5),
+                'user_id'          => Auth::id(),
+                'type'             => 'outgoing',
+                'status'           => 'pending',
+                'notes'            => $request->customer_name, // Kita simpan nama customer di notes
+            ]);
+
+            foreach ($request->products as $item) {
+                // Validasi tambahan: Cek apakah stok cukup saat request dibuat
+                $product = Product::find($item['id']);
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception("Stok barang {$product->name} tidak mencukupi (Tersedia: {$product->stock}).");
+                }
+
+                $transaction->details()->create([
+                    'product_id' => $item['id'], 
+                    'quantity'   => $item['quantity']
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('transactions.index')->with('success', 'Transaksi barang keluar berhasil dibuat dan menunggu persetujuan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal membuat transaksi: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    // hapus transaksi
+    public function destroy(Transaction $transaction)
+    {
+        // hanya status PENDING yang boleh dihapus
+        if ($transaction->status !== 'pending') {
+            return back()->with('error', 'Hanya transaksi dengan status Pending yang dapat dihapus.');
+        }
+
+        // // Staff hanya boleh hapus punya sendiri
+        // if (Auth::user()->role === 'staff' && $transaction->user_id !== Auth::id()) {
+        //     abort(403, 'Anda tidak diizinkan menghapus transaksi orang lain.');
+        // }
+
+        try {
+            // Karena status pending, stok belum berubah, jadi aman langsung hapus
+            $transaction->details()->delete(); 
+            $transaction->delete();
+
+            return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus transaksi: ' . $e->getMessage());
         }
     }
 }

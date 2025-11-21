@@ -29,7 +29,12 @@
                         </div>
                         <div class="mt-2 md:mt-0">
                             <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
-                                @if($restockOrder->status == 'pending') bg-yellow-100 text-yellow-800 @elseif($restockOrder->status == 'confirmed') bg-blue-100 text-blue-800 @elseif($restockOrder->status == 'in_transit') bg-purple-100 text-purple-800 @elseif($restockOrder->status == 'received') bg-green-100 text-green-800 @else bg-red-100 text-red-800 @endif">
+                            @if($restockOrder->status == 'pending') bg-yellow-100 text-yellow-800 
+                                @elseif($restockOrder->status == 'confirmed') bg-blue-100 text-blue-800 
+                                @elseif($restockOrder->status == 'in_transit') bg-purple-100 text-purple-800 
+                                @elseif($restockOrder->status == 'received') bg-green-100 text-green-800 
+                                @else bg-red-100 text-red-800 
+                            @endif">
                                 {{ ucfirst(str_replace('_', ' ', $restockOrder->status)) }}
                             </span>
                         </div>
@@ -88,24 +93,7 @@
                             <h3 class="text-lg font-medium mb-4">Aksi Manager</h3>
                             <div class="flex items-center space-x-4">
 
-                                @if ($restockOrder->status === 'pending')
-                                    {{-- Jika PENDING: Tampilkan tombol Konfirmasi atau Batalkan --}}
-                                    <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}">
-                                        @csrf
-                                        <input type="hidden" name="status" value="confirmed">
-                                        <x-primary-button type="submit">
-                                            Konfirmasi Order
-                                        </x-primary-button>
-                                    </form>
-                                    <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}" onsubmit="return confirm('Anda yakin ingin membatalkan order ini?');">
-                                        @csrf
-                                        <input type="hidden" name="status" value="cancelled">
-                                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                            Batalkan
-                                        </button>
-                                    </form>
-
-                                @elseif ($restockOrder->status === 'confirmed')
+                                @if ($restockOrder->status === 'confirmed')
                                     {{-- Jika CONFIRMED: Tampilkan tombol "Dalam Perjalanan" --}}
                                     <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}">
                                         @csrf

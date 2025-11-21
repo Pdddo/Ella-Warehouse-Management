@@ -11,7 +11,7 @@
             @include('partials.alert')
 
             {{-- PANEL TUGAS: RESTOCK ORDER YANG SUDAH TIBA DAN PERLU DIPROSES --}}
-            @if(isset($receivedOrders) && $receivedOrders->isNotEmpty())
+            @if (Auth::user()->role === 'staff' && $receivedOrders->isNotEmpty())
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-yellow-50 border-b border-yellow-200">
                     <h3 class="text-lg font-medium text-yellow-800 mb-2">
