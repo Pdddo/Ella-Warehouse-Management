@@ -28,14 +28,14 @@
                     @endif
                     
                     {{-- Link untuk Manager --}}
-                    @if(auth()->user()->role === 'manager')
+                    @if(in_array(auth()->user()->role, ['admin', 'manager']))
                         <x-nav-link :href="route('restock-orders.index')" :active="request()->routeIs('restock-orders.*')">
                             {{ __('Restock Order') }}
                         </x-nav-link>
                     @endif
 
                     {{-- Link untuk Staff & Manager --}}
-                    @if(in_array(auth()->user()->role, ['staff', 'manager']))
+                    @if(in_array(auth()->user()->role, ['admin', 'staff', 'manager']))
                         <x-nav-link :href="route('transactions.index')" :active="request()->routeIs('transactions.*')">
                             {{ __('Transaksi') }}
                         </x-nav-link>

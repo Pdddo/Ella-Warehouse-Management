@@ -32,7 +32,7 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 
     // rute untuk staff dan manager
-    Route::middleware(['role:staff,manager'])->group(function () {
+    Route::middleware(['role:admin,staff,manager'])->group(function () {
         Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
         
@@ -46,8 +46,8 @@ Route::middleware('auth', 'verified')->group(function () {
     });
 
     // rute untuk manager
-    Route::middleware(['role:manager'])->group(function () {
-        Route::resource('restock-orders', RestockOrderController::class)->except(['edit', 'update']);
+    Route::middleware(['role:admin,manager'])->group(function () {
+        Route::resource('restock-orders', RestockOrderController::class);
         Route::post('/restock-orders/{restockOrder}/status', [RestockOrderController::class, 'updateStatus'])->name('restock-orders.updateStatus');
         Route::resource('categories', CategoryController::class);
         Route::post('/transactions/{transaction}/approve', [TransactionController::class, 'approve'])->name('transactions.approve');

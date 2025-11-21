@@ -53,7 +53,6 @@
                         <template x-if="!isPrefilled">
                             <div class="border-y py-6 my-6">
                                 <h3 class="text-lg font-medium mb-2">Tambah Produk Manual</h3>
-                                <!-- ... form tambah produk manual ... -->
                             </div>
                         </template>
 

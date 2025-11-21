@@ -2,126 +2,136 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                Detail Order: {{ $restockOrder->po_number }}
+                {{ __('Detail Restock Order') }}
             </h2>
-            {{-- Link kembali ke halaman yang sesuai tergantung role pengguna --}}
-            @if(auth()->user()->role === 'manager')
-                <a href="{{ route('restock-orders.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                    &larr; Kembali ke Daftar Order
-                </a>
-            @elseif(auth()->user()->role === 'supplier')
-                 <a href="{{ route('supplier.dashboard') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                    &larr; Kembali ke Dashboard
-                </a>
-            @endif
+            <a href="{{ route('restock-orders.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
+                &larr; Kembali ke Daftar Order
+            </a>
         </div>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-             @include('partials.alert')
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 md:p-8 text-gray-900">
-                    <!-- Header Detail -->
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-6 mb-6 pb-6 border-b">
+
+                    @include('partials.alert')
+
+                    <!-- Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start mb-6 pb-6 border-b">
                         <div>
-                            <dt class="font-medium text-gray-500">PO Number</dt>
-                            <dd class="mt-1 font-mono">{{ $restockOrder->po_number }}</dd>
+                            <h3 class="text-lg font-bold text-gray-800 font-mono">
+                                {{ $restockOrder->po_number }}
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                Dibuat pada: {{ $restockOrder->order_date->format('d M Y') }}
+                            </p>
                         </div>
-                        <div>
-                            <dt class="font-medium text-gray-500">Status</dt>
-                            <dd class="mt-1">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    @switch($restockOrder->status)
-                                        @case('pending') bg-yellow-100 text-yellow-800 @break
-                                        @case('confirmed') bg-blue-100 text-blue-800 @break
-                                        @case('in_transit') bg-purple-100 text-purple-800 @break
-                                        @case('received') bg-green-100 text-green-800 @break
-                                        @case('denied')
-                                        @case('cancelled') bg-red-100 text-red-800 @break
-                                        @default bg-gray-100 text-gray-800
-                                    @endswitch">
-                                    {{ ucfirst(str_replace('_', ' ', $restockOrder->status)) }}
-                                </span>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-gray-500">Dibuat Oleh</dt>
-                            <dd class="mt-1">{{ $restockOrder->manager->name }}</dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-gray-500">Supplier</dt>
-                            <dd class="mt-1">{{ $restockOrder->supplier->name }}</dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-gray-500">Tanggal Order</dt>
-                            <dd class="mt-1">{{ $restockOrder->order_date->format('d F Y') }}</dd>
-                        </div>
-                        <div>
-                            <dt class="font-medium text-gray-500">Ekspektasi Tiba</dt>
-                            <dd class="mt-1">{{ $restockOrder->expected_delivery_date->format('d F Y') }}</dd>
+                        <div class="mt-2 md:mt-0">
+                            <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
+                                @if($restockOrder->status == 'pending') bg-yellow-100 text-yellow-800 @elseif($restockOrder->status == 'confirmed') bg-blue-100 text-blue-800 @elseif($restockOrder->status == 'in_transit') bg-purple-100 text-purple-800 @elseif($restockOrder->status == 'received') bg-green-100 text-green-800 @else bg-red-100 text-red-800 @endif">
+                                {{ ucfirst(str_replace('_', ' ', $restockOrder->status)) }}
+                            </span>
                         </div>
                     </div>
 
+                    <!-- Detail Utama -->
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-4 mb-6">
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">Dibuat Oleh (Manager)</h4>
+                            <p class="text-base">{{ $restockOrder->manager->name ?? 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">Supplier</h4>
+                            <p class="text-base">{{ $restockOrder->supplier->name ?? 'N/A' }}</p>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-medium text-gray-500">Perkiraan Tiba</h4>
+                            <p class="text-base">{{ $restockOrder->expected_delivery_date ? $restockOrder->expected_delivery_date->format('d M Y') : 'Tidak ditentukan' }}</p>
+                        </div>
+                        @if($restockOrder->notes)
+                        <div class="col-span-2">
+                            <h4 class="text-sm font-medium text-gray-500">Catatan</h4>
+                            <p class="text-base mt-1 whitespace-pre-wrap">{{ $restockOrder->notes }}</p>
+                        </div>
+                        @endif
+                    </div>
+
                     <!-- Daftar Produk -->
-                    <h3 class="text-lg font-medium mb-4">Produk dalam Order</h3>
-                    <div class="flow-root">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <h3 class="text-lg font-medium mb-4 border-t pt-6">Detail Produk Order</h3>
+                    <div class="relative overflow-x-auto rounded-lg border">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produk</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+                                    <th class="px-6 py-3">Nama Produk</th>
+                                    <th class="px-6 py-3 text-right">Jumlah</th>
+                                    <th class="px-6 py-3 text-right">Unit</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @foreach($restockOrder->details as $detail)
-                                <tr>
-                                    <td class="px-6 py-4">{{ $detail->product->name }} <span class="text-gray-500 font-mono text-xs">({{ $detail->product->sku }})</span></td>
-                                    <td class="px-6 py-4">{{ $detail->quantity }} {{ $detail->product->unit }}</td>
-                                </tr>
-                                @endforeach
+                            <tbody>
+                                @forelse ($restockOrder->details as $detail)
+                                    <tr class="bg-white border-b">
+                                        <td class="px-6 py-4 font-medium text-gray-900">{{ $detail->product->name }}</td>
+                                        <td class="px-6 py-4 text-right">{{ $detail->quantity }}</td>
+                                        <td class="px-6 py-4 text-right text-gray-500">{{ $detail->product->unit ?? 'N/A' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="text-center py-4">Tidak ada detail produk untuk order ini.</td></tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Catatan -->
-                    @if($restockOrder->notes)
-                    <div class="mt-6 border-t pt-6">
-                        <h3 class="text-lg font-medium">Catatan</h3>
-                        <p class="mt-2 text-gray-600 whitespace-pre-wrap">{{ $restockOrder->notes }}</p>
-                    </div>
-                    @endif
+                    {{-- PANEL AKSI MANAGER DENGAN LOGIKA FINAL --}}
+                    @if (auth()->user()->role === 'manager')
+                        <div class="mt-8 pt-6 border-t">
+                            <h3 class="text-lg font-medium mb-4">Aksi Manager</h3>
+                            <div class="flex items-center space-x-4">
 
-                    <!-- Tombol Aksi untuk Manager -->
-                    @if(auth()->user()->role === 'manager')
-                    <div class="mt-8 pt-6 border-t flex justify-end gap-3">
-                        {{-- Tombol untuk membatalkan order yang masih PENDING --}}
-                        @if($restockOrder->status === 'pending')
-                            <form action="{{ route('restock-orders.destroy', $restockOrder) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan order ini?');">
-                                @csrf
-                                @method('DELETE')
-                                <x-danger-button type="submit">Batalkan Order</x-danger-button>
-                            </form>
-                        @endif
+                                @if ($restockOrder->status === 'pending')
+                                    {{-- Jika PENDING: Tampilkan tombol Konfirmasi atau Batalkan --}}
+                                    <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="confirmed">
+                                        <x-primary-button type="submit">
+                                            Konfirmasi Order
+                                        </x-primary-button>
+                                    </form>
+                                    <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}" onsubmit="return confirm('Anda yakin ingin membatalkan order ini?');">
+                                        @csrf
+                                        <input type="hidden" name="status" value="cancelled">
+                                        <button type="submit" class="inline-flex items-center justify-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                            Batalkan
+                                        </button>
+                                    </form>
 
-                        {{-- Tombol untuk menandai IN TRANSIT --}}
-                        @if($restockOrder->status === 'confirmed')
-                            <form action="{{ route('restock-orders.updateStatus', $restockOrder) }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="status" value="in_transit">
-                                <x-primary-button type="submit" class="bg-blue-600 hover:bg-blue-500">Tandai "In Transit"</x-primary-button>
-                            </form>
-                        @endif
+                                @elseif ($restockOrder->status === 'confirmed')
+                                    {{-- Jika CONFIRMED: Tampilkan tombol "Dalam Perjalanan" --}}
+                                    <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="in_transit">
+                                        <x-primary-button type="submit">
+                                            Tandai "Dalam Perjalanan"
+                                        </x-primary-button>
+                                    </form>
 
-                        {{-- Tombol untuk menandai RECEIVED --}}
-                        @if($restockOrder->status === 'in_transit')
-                            <form action="{{ route('restock-orders.updateStatus', $restockOrder) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin barang telah diterima? Stok akan diperbarui secara otomatis dan aksi ini tidak dapat dibatalkan.');">
-                                @csrf
-                                <input type="hidden" name="status" value="received">
-                                <x-primary-button type="submit" class="bg-green-600 hover:bg-green-500">Tandai "Received"</x-primary-button>
-                            </form>
-                        @endif
-                    </div>
+                                @elseif ($restockOrder->status === 'in_transit')
+                                    {{-- Jika IN_TRANSIT: Tampilkan tombol "Telah Diterima" --}}
+                                    <form method="POST" action="{{ route('restock-orders.updateStatus', $restockOrder) }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="received">
+                                        <x-primary-button type="submit">
+                                            Tandai "Telah Diterima"
+                                        </x-primary-button>
+                                    </form>
+                                    
+                                @else
+                                    {{-- Jika status sudah final (received/cancelled) --}}
+                                    <p class="text-gray-500 text-sm">Tidak ada aksi yang tersedia untuk status ini.</p>
+                                @endif
+
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
