@@ -19,7 +19,7 @@ class ProductFactory extends Factory
     {
         return [
             // Pilih sebuah ID kategori secara acak dari yang sudah ada
-            'category_id' => Category::inRandomOrder()->first()->id,
+            'category_id' => Category::factory(),
             'sku' => fake()->unique()->bothify('SKU-####-????'), // contoh: SKU-5678-hjkl
             'name' => fake()->words(3, true), // contoh: "Minyak Goreng Sawit"
             'description' => fake()->paragraph(),
