@@ -24,9 +24,12 @@ class ProductController extends Controller
                   ->orWhere('sku', 'like', "%{$search}%");
         }
 
+        // menghitung total stok
+        $totalStock = Product::sum('stock');
+
         $products = $query->paginate(10)->withQueryString();
 
-        return view('products.index', compact('products'));
+        return view('products.index', compact('products', 'totalStock'));
     }
 
 

@@ -13,15 +13,47 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
-    public function index()
+   public function index(Request $request)
     {
-        $incoming = Transaction::with('user')->where('type', 'incoming')->latest()->paginate(10, ['*'], 'incoming_page');
-        $outgoing = Transaction::with('user')->where('type', 'outgoing')->latest()->paginate(10, ['*'], 'outgoing_page');
+        $query = Transaction::with(['user', 'approvedBy', 'supplier']);
+
+        // filter: Pencarian
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('transaction_number', 'like', "%{$search}%")
+                  ->orWhere('customer_name', 'like', "%{$search}%")
+                  ->orWhereHas('supplier', function($s) use ($search) {
+                      $s->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // filter: Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // filter: Tanggal Transaksi
+        if ($request->filled('transaction_date')) {
+            $query->whereDate('created_at', $request->transaction_date);
+        }
+
+        // pisahkan Query Incoming & Outgoing
+        $incoming = (clone $query)->where('type', 'incoming')
+            ->latest()
+            ->paginate(10, ['*'], 'incoming_page')
+            ->appends($request->all());
+
+        $outgoing = (clone $query)->where('type', 'outgoing')
+            ->latest()
+            ->paginate(10, ['*'], 'outgoing_page')
+            ->appends($request->all());
 
         $receivedOrders = RestockOrder::with('supplier')
-                                    ->where('status', 'received')
-                                    ->whereNull('processed_at')
-                                    ->get();
+            ->where('status', 'received')
+            ->whereNull('processed_at')
+            ->get();
 
         return view('transactions.index', compact('incoming', 'outgoing', 'receivedOrders'));
     }
@@ -160,6 +192,8 @@ class TransactionController extends Controller
         $request->validate([
             'transaction_date' => 'required|date',
             'customer_name'    => 'required|string|max:255',
+            'notes'            => 'nullable|string',
+            'products'         => 'required|array|min:1',
             'products.*.id'    => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
         ]);
@@ -172,12 +206,14 @@ class TransactionController extends Controller
                 'user_id'          => Auth::id(),
                 'type'             => 'outgoing',
                 'status'           => 'pending',
-                'notes'            => $request->customer_name, // Kita simpan nama customer di notes
+                'customer_name'    => $request->customer_name, 
+                'notes'            => $request->notes, 
             ]);
 
             foreach ($request->products as $item) {
-                // Validasi tambahan: Cek apakah stok cukup saat request dibuat
                 $product = Product::find($item['id']);
+                
+                // Cek stok
                 if ($product->stock < $item['quantity']) {
                     throw new \Exception("Stok barang {$product->name} tidak mencukupi (Tersedia: {$product->stock}).");
                 }
@@ -189,7 +225,7 @@ class TransactionController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('transactions.index')->with('success', 'Transaksi barang keluar berhasil dibuat dan menunggu persetujuan.');
+            return redirect()->route('transactions.index')->with('success', 'Transaksi barang keluar berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal membuat transaksi: ' . $e->getMessage())->withInput();

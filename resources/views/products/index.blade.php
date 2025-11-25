@@ -9,6 +9,24 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
+
+                    <!-- Statistik Ringkas -->
+                    <div class="mb-4 flex flex-wrap justify-center gap-4">
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 w-full md:w-1/3 text-center">
+                            <div class="text-gray-900 font-bold text-lg">Total Aset Barang</div>
+                            <div class="text-3xl font-extrabold text-indigo-600 mt-2">
+                                {{ number_format($totalStock) }} <span class="text-sm text-gray-500 font-normal">Unit</span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6 w-full md:w-1/3 text-center">
+                            <div class="text-gray-900 font-bold text-lg">Total Jenis Produk</div>
+                            <div class="text-3xl font-extrabold text-indigo-600 mt-2">
+                                {{ $products->total() }} <span class="text-sm text-gray-500 font-normal">Item</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Tombol dan Form Pencarian -->
                     <div class="flex justify-between items-center mb-4">
                         <a href="{{ route('products.create') }}" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">

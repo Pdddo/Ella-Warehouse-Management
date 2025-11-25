@@ -10,7 +10,13 @@ class Transaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['transaction_number', 'user_id', 'type', 'notes', 'status'];
+    protected $fillable = ['transaction_number', 'user_id', 'type', 'notes', 'status', 'supplier_id', 'customer_name', 'approved_by', 'approved_at',];
+
+    
+    protected $casts = [
+            'approved_at' => 'datetime',
+        ];
+
 
     // Relasi: Transaksi dibuat oleh satu user (staff)
     public function user()
