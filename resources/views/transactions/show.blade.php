@@ -104,6 +104,24 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <div class="mt-8 pt-6 border-t flex justify-between items-center">
+                    {{-- Tombol Hapus (Kiri) --}}
+                    @if($transaction->status === 'pending')
+                        @if(Auth::user()->role !== 'staff' || $transaction->user_id === Auth::id())
+                            <form action="{{ route('transactions.destroy', $transaction) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus transaksi ini secara permanen?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-800 font-semibold text-sm">
+                                    🗑️ Hapus Transaksi
+                                </button>
+                            </form>
+                        @else
+                            <div></div>
+                        @endif
+                    @else
+                        <div></div>
+                    @endif
                     
                     @if (auth()->user()->role === 'manager' && $transaction->status === 'pending')
                     <div class="mt-8 pt-6 border-t text-right">

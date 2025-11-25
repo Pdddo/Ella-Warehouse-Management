@@ -33,6 +33,9 @@ Route::middleware('auth', 'verified')->group(function () {
         Route::patch('/admin/suppliers/{id}/approve', [DashboardController::class, 'approveSupplier'])
             ->name('admin.suppliers.approve')
             ->middleware('role:admin');
+        // Fitur Feedback rating
+        Route::post('/restock-orders/{restockOrder}/rate', [RestockOrderController::class, 'storeRating'])
+            ->name('restock-orders.rate');
     });
 
     // rute untuk staff dan manager
@@ -47,6 +50,9 @@ Route::middleware('auth', 'verified')->group(function () {
         // Rute untuk Barang Keluar
         Route::get('/transactions/outgoing/create', [TransactionController::class, 'createOutgoing'])->name('transactions.create.outgoing');
         Route::post('/transactions/outgoing', [TransactionController::class, 'storeOutgoing'])->name('transactions.store.outgoing');
+
+        // Fitur Hapus Transaksi
+        Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
     });
 
     // rute untuk manager

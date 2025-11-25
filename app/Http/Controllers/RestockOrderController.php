@@ -138,6 +138,31 @@ class RestockOrderController extends Controller
         }
     }
 
+    public function storeRating(Request $request, RestockOrder $restockOrder)
+    {
+        // Validasi: Pastikan user adalah manager (sudah dihandle middleware, tapi double check aman)
+        if (auth()->user()->role !== 'manager') {
+            abort(403);
+        }
+
+        // Validasi: Sesuai modul, rating hanya boleh jika status "Received"
+        if ($restockOrder->status !== 'received') {
+            return back()->with('error', 'Rating hanya dapat diberikan setelah barang diterima (Status: Received).');
+        }
+
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5', // Skala 1-5
+            'supplier_feedback' => 'nullable|string|max:500',
+        ]);
+
+        $restockOrder->update([
+            'rating' => $request->rating,
+            'supplier_feedback' => $request->supplier_feedback,
+        ]);
+
+        return back()->with('success', 'Rating dan feedback untuk supplier berhasil disimpan.');
+    }
+
     // Membatalkan pesanan restock.
     public function destroy(RestockOrder $restockOrder)
     {

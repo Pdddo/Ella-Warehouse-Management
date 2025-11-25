@@ -20,6 +20,8 @@ class RestockOrder extends Model
         'notes',
         'status',
         'processed_at',
+        'rating',
+        'supplier_feedback',
     ];
 
     protected function casts(): array

@@ -87,6 +87,66 @@
                         </table>
                     </div>
 
+                    <div class="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Rating & Feedback Supplier</h3>
+
+                        @if($restockOrder->rating)
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <div class="flex items-center mb-2">
+                                    <span class="text-gray-600 mr-2">Rating:</span>
+                                    <div class="flex text-yellow-400">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="text-2xl">{{ $i <= $restockOrder->rating ? '★' : '☆' }}</span>
+                                        @endfor
+                                    </div>
+                                    <span class="ml-2 font-bold text-gray-700">({{ $restockOrder->rating }}/5)</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-600 block mb-1">Feedback:</span>
+                                    <p class="text-gray-800 italic">"{{ $restockOrder->supplier_feedback ?? 'Tidak ada pesan feedback.' }}"</p>
+                                </div>
+                            </div>
+
+                        @elseif($restockOrder->status === 'received' && auth()->user()->role === 'manager')
+                            <form action="{{ route('restock-orders.rate', $restockOrder) }}" method="POST">
+                                @csrf
+                                
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Berikan Rating (1-5 Bintang)</label>
+                                    <div class="flex space-x-4">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <label class="cursor-pointer flex flex-col items-center">
+                                                <input type="radio" name="rating" value="{{ $i }}" class="mb-1" required>
+                                                <span class="text-xl">★ {{ $i }}</span>
+                                            </label>
+                                        @endfor
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="supplier_feedback" class="block text-sm font-medium text-gray-700">Feedback / Catatan (Opsional)</label>
+                                    <textarea name="supplier_feedback" id="supplier_feedback" rows="3" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                        placeholder="Contoh: Pengiriman cepat, barang aman."></textarea>
+                                </div>
+
+                                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">
+                                    Kirim Rating
+                                </button>
+                            </form>
+
+                        @else
+                            <p class="text-gray-500 italic">
+                                @if($restockOrder->status !== 'received')
+                                    Rating dapat diberikan setelah barang diterima (Status: Received).
+                                @else
+                                    Belum ada rating yang diberikan.
+                                @endif
+                            </p>
+                        @endif
+                    </div>
+                    
+
                     {{-- PANEL AKSI MANAGER DENGAN LOGIKA FINAL --}}
                     @if (auth()->user()->role === 'manager')
                         <div class="mt-8 pt-6 border-t">

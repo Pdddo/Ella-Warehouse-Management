@@ -240,10 +240,10 @@ class TransactionController extends Controller
             return back()->with('error', 'Hanya transaksi dengan status Pending yang dapat dihapus.');
         }
 
-        // // Staff hanya boleh hapus punya sendiri
-        // if (Auth::user()->role === 'staff' && $transaction->user_id !== Auth::id()) {
-        //     abort(403, 'Anda tidak diizinkan menghapus transaksi orang lain.');
-        // }
+        // Staff hanya boleh hapus punya sendiri
+        if (Auth::user()->role === 'staff' && $transaction->user_id !== Auth::id()) {
+            abort(403, 'Anda tidak diizinkan menghapus transaksi orang lain.');
+        }
 
         try {
             // Karena status pending, stok belum berubah, jadi aman langsung hapus

@@ -28,12 +28,9 @@
                     </div>
 
                     <div>
-                        <x-input-label for="start_date" :value="__('Tanggal Awal')" />
-                        <x-text-input id="start_date" name="start_date" type="date" value="{{ request('start_date') }}" class="block w-full mt-1" />
-                    </div>
-                    <div>
-                        <x-input-label for="end_date" :value="__('Tanggal Akhir')" />
-                        <x-text-input id="end_date" name="end_date" type="date" value="{{ request('end_date') }}" class="block w-full mt-1" />
+                        <x-input-label for="transaction_date" :value="__('Tanggal Transaksi')" />
+                        {{-- name="transaction_date" ini harus sama persis dengan yang ada di controller --}}
+                        <x-text-input id="transaction_date" name="transaction_date" type="date" value="{{ request('transaction_date') }}" class="block w-full mt-1" />
                     </div>
 
                     <div class="md:col-span-5 flex justify-end gap-2">
