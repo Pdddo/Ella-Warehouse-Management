@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\TransactionController;
@@ -13,61 +13,84 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth', 'verified')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'edit')->name('profile.edit');
+        Route::patch('/profile', 'update')->name('profile.update');
+        Route::delete('/profile', 'destroy')->name('profile.destroy');
+    });
 
-    // rute untuk admin dan manager
-    Route::middleware(['role:admin,manager'])->group(function () {
-        // Fitur "Manajemen Kategori"
+
+    // admin onlyz
+    Route::middleware('role:admin')->group(function() {
+        Route::patch('/admin/suppliers/{id}/approve', [DashboardController::class, 'approveSupplier'])->name('admin.suppliers.approve');
+    });
+
+
+    // supplier onlyz
+    Route::middleware('role:supplier')
+        ->prefix('supplier/orders')
+        ->name('supplier.orders.')
+        ->controller(SupplierOrderController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{restockOrder}', 'show')->name('show');
+            Route::post('/{restockOrder}/confirm', 'confirm')->name('confirm');
+            Route::post('/{restockOrder}/deny', 'deny')->name('deny');
+        });
+
+
+    // admin dan manager
+    Route::middleware('role:admin,manager')->group(function () {
+
+        // aksesk ke crud kategori, produk, dan restock order
         Route::resource('categories', CategoryController::class);
-        // Fitur "Manajemen Produk"
         Route::resource('products', ProductController::class);
-        // Route khusus untuk Admin menyetujui supplier
-        Route::patch('/admin/suppliers/{id}/approve', [DashboardController::class, 'approveSupplier'])
-            ->name('admin.suppliers.approve')
-            ->middleware('role:admin');
-        // Fitur Feedback rating
+        Route::resource('restock-orders', RestockOrderController::class);
+
+        // akses ke update status dan rating restock order
+        Route::post('/restock-orders/{restockOrder}/status', [RestockOrderController::class, 'updateStatus'])
+            ->name('restock-orders.updateStatus');
         Route::post('/restock-orders/{restockOrder}/rate', [RestockOrderController::class, 'storeRating'])
             ->name('restock-orders.rate');
+
+        // aksesn untuk approve transaksi
+        Route::post('/transactions/{transaction}/approve', [TransactionController::class, 'approve'])
+            ->name('transactions.approve');
     });
 
-    // rute untuk staff dan manager
-    Route::middleware(['role:admin,staff,manager'])->group(function () {
-        Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
-        Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
-        
-        // transaksi barang masuk dan keluar
-        // Rute untuk Barang Masuk
-        Route::get('/transactions/incoming/create', [TransactionController::class, 'createIncoming'])->name('transactions.create.incoming');
-        Route::post('/transactions/incoming', [TransactionController::class, 'storeIncoming'])->name('transactions.store.incoming');
-        // Rute untuk Barang Keluar
-        Route::get('/transactions/outgoing/create', [TransactionController::class, 'createOutgoing'])->name('transactions.create.outgoing');
-        Route::post('/transactions/outgoing', [TransactionController::class, 'storeOutgoing'])->name('transactions.store.outgoing');
 
-        // Fitur Hapus Transaksi
-        Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
+    // admin, manager, dan staff
+    Route::middleware('role:admin,manager,staff')->group(function () {
+
+        Route::controller(TransactionController::class)
+            ->prefix('transactions')
+            ->name('transactions.')
+            ->group(function () {
+
+                // akses ke daftar dan detail transaksi
+                Route::get('/', 'index')->name('index');
+                Route::get('/{transaction}', 'show')->whereNumber('transaction')->name('show');
+
+                // akses ke input Barang Masuk (Incoming)
+                Route::get('/incoming/create', 'createIncoming')->name('create.incoming');
+                Route::post('/incoming', 'storeIncoming')->name('store.incoming');
+
+                // akses ke input Barang Keluar (Outgoing)
+                Route::get('/outgoing/create', 'createOutgoing')->name('create.outgoing');
+                Route::post('/outgoing', 'storeOutgoing')->name('store.outgoing');
+
+                // akses ke edit & update
+                Route::get('/{transaction}/edit', 'edit')->name('edit');
+                Route::put('/{transaction}', 'update')->name('update');
+
+                // akses ke hapus
+                Route::delete('/{transaction}', 'destroy')->name('destroy');
+            });
     });
 
-    // rute untuk manager
-    Route::middleware(['role:admin,manager'])->group(function () {
-        Route::resource('restock-orders', RestockOrderController::class);
-        Route::post('/restock-orders/{restockOrder}/status', [RestockOrderController::class, 'updateStatus'])->name('restock-orders.updateStatus');
-        Route::resource('categories', CategoryController::class);
-        Route::post('/transactions/{transaction}/approve', [TransactionController::class, 'approve'])->name('transactions.approve');
-    });
-
-     // Grup Rute KHUSUS untuk Supplier
-    Route::middleware(['auth', 'verified', 'role:supplier'])->group(function () {
-        Route::post('/supplier/orders/{restockOrder}/confirm', [SupplierOrderController::class, 'confirm'])->name('supplier.orders.confirm');
-        Route::post('/supplier/orders/{restockOrder}/deny', [SupplierOrderController::class, 'deny'])->name('supplier.orders.deny');
-    });
 });
 
 require __DIR__.'/auth.php';

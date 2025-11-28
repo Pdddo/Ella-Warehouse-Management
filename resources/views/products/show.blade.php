@@ -1,129 +1,141 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Detail Produk') }}
-            </h2>
-            <a href="{{ route('products.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                &larr; Kembali ke Daftar Produk
-            </a>
-        </div>
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Product Details') }}
+        </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 md:p-8 text-gray-900">
+        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+            
+            <a href="{{ route('products.index') }}" class="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back to List
+            </a>
+
+            <div class="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 rounded-3xl shadow-2xl overflow-hidden">
+                <div class="md:flex">
                     
-                    <!-- Grid Utama: Gambar di Kiri, Info di Kanan -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        
-                        <!-- Kolom Gambar -->
-                        <div class="md:col-span-1">
-                            @if ($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="w-full h-auto object-cover rounded-lg shadow-md">
-                            @else
-                                <div class="w-full h-64 bg-gray-200 flex items-center justify-center rounded-lg shadow-md">
-                                    <span class="text-gray-500">Tidak ada gambar</span>
-                                </div>
-                            @endif
-                        </div>
-
-                        <!-- Kolom Info Detail -->
-                        <div class="md:col-span-2">
-                            <h3 class="text-3xl font-bold text-gray-800">{{ $product->name }}</h3>
-                            <p class="text-sm text-gray-500 font-mono mt-1">SKU: {{ $product->sku }}</p>
-                            
-                            <p class="mt-4 text-gray-600">{{ $product->description }}</p>
-
-                            <!-- Info Stok -->
-                            <div class="mt-6">
-                                @if($product->stock <= $product->min_stock)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-                                        Stok Rendah: {{ $product->stock }} / {{ $product->min_stock }} {{ $product->unit }}
-                                    </span>
-                                @else
-                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        Stok Aman: {{ $product->stock }} {{ $product->unit }}
-                                    </span>
-                                @endif
+                    <div class="md:w-1/3 bg-black/20 p-8 flex items-center justify-center border-r border-white/5">
+                        @if($product->image)
+                            <img src="{{ asset('storage/' . $product->image) }}" class="rounded-xl shadow-lg max-h-80 object-cover" alt="{{ $product->name }}">
+                        @else
+                            <div class="h-64 w-64 rounded-2xl bg-white/5 flex items-center justify-center">
+                                <svg class="w-20 h-20 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
-
-                            <!-- Detail Harga dan Atribut Lain -->
-                            <div class="mt-6 border-t pt-6 grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                                <div>
-                                    <dt class="font-medium text-gray-500">Kategori</dt>
-                                    <dd class="mt-1 text-gray-900">{{ $product->category->name ?? 'N/A' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="font-medium text-gray-500">Lokasi Rak</dt>
-                                    <dd class="mt-1 text-gray-900">{{ $product->rack_location ?: '-' }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="font-medium text-gray-500">Harga Beli</dt>
-                                    <dd class="mt-1 text-gray-900">Rp {{ number_format($product->buy_price, 0, ',', '.') }}</dd>
-                                </div>
-                                <div>
-                                    <dt class="font-medium text-gray-500">Harga Jual</dt>
-                                    <dd class="mt-1 text-gray-900">Rp {{ number_format($product->sell_price, 0, ',', '.') }}</dd>
-                                </div>
-                            </div>
-                            
-                            <!-- Tombol Aksi -->
-                             <div class="mt-8 flex items-center gap-4">
-                                <a href="{{ route('products.edit', $product) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 focus:bg-blue-700 active:bg-blue-900">
-                                    Edit Produk
-                                </a>
-                                @if(auth()->user()->role === 'manager' && $product->stock <= $product->min_stock)
-                                    <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                                        Buat Order Restock
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
+                        @endif
                     </div>
 
-                    <!-- Riwayat Transaksi Terakhir -->
-                    <div class="mt-12 border-t pt-8">
-                        <h4 class="text-lg font-medium text-gray-900">5 Transaksi Terakhir</h4>
-                        <div class="mt-4 flow-root">
-                            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                    <table class="min-w-full divide-y divide-gray-300">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">No. Transaksi</th>
-                                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tipe</th>
-                                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Jumlah</th>
-                                                <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Tanggal</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200">
-                                            @forelse ($product->transactionDetails as $detail)
-                                            <tr>
-                                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">{{ $detail->transaction->transaction_number }}</td>
-                                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                                                    @if($detail->transaction->type === 'incoming')
-                                                        <span class="text-green-600">Masuk</span>
+                    <div class="p-8 md:w-2/3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20 text-xs font-semibold uppercase tracking-wider mb-2 inline-block">
+                                    {{ $product->category->name ?? 'Uncategorized' }}
+                                </span>
+                                <h1 class="text-3xl font-bold text-white mb-1">{{ $product->name }}</h1>
+                                <p class="text-slate-400 text-sm font-mono tracking-wide">SKU: {{ $product->sku }}</p>
+                            </div>
+                            
+                            {{-- Stok Utama Badge --}}
+                            <div class="text-right">
+                                <span class="px-4 py-2 rounded-xl text-sm font-bold border {{ $product->stock > $product->min_stock ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20' }}">
+                                    {{ $product->stock }} {{ $product->unit }} Available
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-6 mt-8 p-6 bg-white/5 rounded-2xl border border-white/5">
+                            
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Harga Jual</p>
+                                <p class="text-2xl font-mono text-emerald-400 font-bold">Rp {{ number_format($product->sell_price, 0, ',', '.') }}</p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Harga Beli</p>
+                                <p class="text-xl font-mono text-slate-300">Rp {{ number_format($product->buy_price, 0, ',', '.') }}</p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Satuan Unit</p>
+                                <p class="text-lg text-white capitalize">{{ $product->unit }}</p>
+                            </div>
+
+                            <div>
+                                <p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Lokasi Gudang</p>
+                                <div class="flex items-center gap-2 text-lg text-white">
+                                    <svg class="w-5 h-5 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    {{ $product->rack_location }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-white/5">
+                            <h4 class="text-sm font-semibold text-slate-300 mb-2">Deskripsi</h4>
+                            <p class="text-slate-400 leading-relaxed text-sm">
+                                {{ $product->description ?: 'Tidak ada deskripsi yang disediakan untuk produk ini.' }}
+                            </p>
+                        </div>
+
+                        {{-- [BARU] Riwayat 5 Transaksi Terakhir --}}
+                        <div class="mt-8 pt-6 border-t border-white/5">
+                            <h4 class="text-sm font-semibold text-slate-300 mb-4">Riwayat 5 Transaksi Terakhir</h4>
+                            <div class="overflow-hidden rounded-xl border border-white/10">
+                                <table class="w-full text-left text-sm text-slate-400">
+                                    <thead class="bg-white/5 text-xs uppercase font-bold text-slate-300">
+                                        <tr>
+                                            <th class="px-4 py-3">Tanggal</th>
+                                            <th class="px-4 py-3">Tipe</th>
+                                            <th class="px-4 py-3 text-right">Jumlah</th>
+                                            <th class="px-4 py-3 text-right">Oleh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        {{-- Mengambil data relasi transactionDetails, load parent transaction, urutkan, ambil 5 --}}
+                                        @forelse($product->transactionDetails()->with('transaction.user')->latest()->take(5)->get() as $detail)
+                                            <tr class="hover:bg-white/5 transition-colors">
+                                                <td class="px-4 py-3">
+                                                    {{ $detail->transaction->created_at->format('d M Y') }}
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    @if($detail->transaction->type == 'incoming')
+                                                        <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                                            MASUK
+                                                        </span>
                                                     @else
-                                                        <span class="text-red-600">Keluar</span>
+                                                        <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                                            KELUAR
+                                                        </span>
                                                     @endif
                                                 </td>
-                                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $detail->quantity }} {{ $product->unit }}</td>
-                                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ $detail->transaction->created_at->format('d M Y, H:i') }}</td>
+                                                <td class="px-4 py-3 text-right font-mono text-white">
+                                                    {{ $detail->quantity }}
+                                                </td>
+                                                <td class="px-4 py-3 text-right">
+                                                    {{ $detail->transaction->user->name ?? '-' }}
+                                                </td>
                                             </tr>
-                                            @empty
+                                        @empty
                                             <tr>
-                                                <td colspan="4" class="px-3 py-4 text-center text-sm text-gray-500">Belum ada riwayat transaksi.</td>
+                                                <td colspan="4" class="px-4 py-6 text-center text-xs italic text-slate-500">
+                                                    Belum ada transaksi untuk produk ini.
+                                                </td>
                                             </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
-                                </div>
+                                        @endforelse
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                    </div>
+                        {{-- Riwayat Transaksi --}}
 
+                        @if(auth()->user()->role === 'admin' || auth()->user()->role === 'manager')
+                        <div class="mt-8 flex gap-4">
+                            <a href="{{ route('products.edit', $product) }}" class="flex-1 text-center px-4 py-3 bg-emerald-500/20 text-emerald-400 rounded-xl shadow-lg transition-all font-bold text-sm">
+                                Edit Data Product
+                            </a>
+                        </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

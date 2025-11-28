@@ -20,35 +20,37 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin User',
             'email' => 'admin@example.com',
             'role' => 'admin',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make('pass123'),
         ]);
 
         User::factory()->create([
             'name' => 'Manager User',
             'email' => 'manager@example.com',
             'role' => 'manager',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make('pass123'),
         ]);
 
         User::factory()->create([
             'name' => 'Staff User',
             'email' => 'staff@example.com',
             'role' => 'staff',
-            'password' => Hash::make('password123'),
+            'password' => Hash::make('pass123'),
         ]);
 
         User::factory()->create([
             'name' => 'Supplier User',
             'email' => 'supplier@example.com',
             'role' => 'supplier',
-            'password' => Hash::make('password123'),
-            'approved_at' => now(), // Supplier ini kita anggap sudah disetujui
+            'password' => Hash::make('pass123'),
+            'approved_at' => now(),
         ]);
 
-        // membuat 5 Kategori Produk secara acak (test)
-        Category::factory(5)->create();
+        // Category::factory(5)->create();
 
-        // membuat 50 Produk secara acak (test)
-        Product::factory(50)->create();
+        // Product::factory(50)->create();
+
+        $this->call([
+            WeaponSeeder::class,
+        ]);
     }
 }

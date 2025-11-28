@@ -145,7 +145,6 @@ class TransactionController extends Controller
         }
     }
     
-    // Metode show dan approve tetap sama seperti sebelumnya
     public function show(Transaction $transaction)
     {
         $transaction->load('user', 'supplier', 'details.product', 'approvedBy');
@@ -154,7 +153,7 @@ class TransactionController extends Controller
 
     public function approve(Transaction $transaction)
     {
-        if (Auth::user()->role !== 'manager') { abort(403); }
+        if (!in_array(Auth::user()->role, ['manager', 'admin'])) { abort(403, 'Hanya Manager atau Admin yang dapat menyetujui transaksi.');}
         if ($transaction->status !== 'pending') {
             return back()->with('error', 'Transaksi ini tidak lagi dalam status pending.');
         }
@@ -229,6 +228,74 @@ class TransactionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal membuat transaksi: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function edit(Transaction $transaction)
+    {
+        // Validasi: Hanya status Pending yang boleh diedit
+        if ($transaction->status !== 'pending') {
+            return redirect()->back()->with('error', 'Hanya transaksi dengan status Pending yang dapat diedit.');
+        }
+
+        // Eager load details dan product untuk ditampilkan di form
+        $transaction->load('details.product', 'supplier');
+        
+        // Ambil daftar produk untuk dropdown
+        $products = Product::orderBy('name')->get();
+
+        return view('transactions.edit', compact('transaction', 'products'));
+    }
+
+    public function update(Request $request, Transaction $transaction)
+    {
+        // Validasi Status Lagi (untuk keamanan ganda)
+        if ($transaction->status !== 'pending') {
+            return redirect()->route('transactions.index')->with('error', 'Transaksi tidak dapat diedit karena status bukan Pending.');
+        }
+
+        $request->validate([
+            'notes'             => 'nullable|string',
+            'products'          => 'required|array|min:1',
+            'products.*.id'     => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Update Catatan Utama
+            $transaction->update([
+                'notes' => $request->notes,
+            ]);
+
+            // 2. Update Detail Produk (Cara paling bersih: Hapus lama -> Buat baru)
+            // Kita hapus detail lama
+            $transaction->details()->delete();
+
+            // Kita buat detail baru dari input form
+            foreach ($request->products as $item) {
+                // Validasi Stok Khusus Outgoing (Barang Keluar)
+                if ($transaction->type === 'outgoing') {
+                    $product = Product::find($item['id']);
+                    if ($product->stock < $item['quantity']) {
+                        throw new \Exception("Stok barang '{$product->name}' tidak mencukupi untuk permintaan ini (Tersedia: {$product->stock}).");
+                    }
+                }
+
+                // Simpan Detail Baru
+                $transaction->details()->create([
+                    'product_id' => $item['id'],
+                    'quantity'   => $item['quantity']
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal memperbarui transaksi: ' . $e->getMessage())->withInput();
         }
     }
 

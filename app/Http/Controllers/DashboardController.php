@@ -60,7 +60,12 @@ class DashboardController extends Controller
 
         $ongoingRestocks = RestockOrder::whereIn('status', ['pending', 'confirmed', 'in_transit'])->latest()->get();
 
-        return view('dashboards.manager', compact('totalItems', 'lowStockCount', 'recentTransactions', 'ongoingRestocks'));
+        $pendingTransactions = Transaction::with('user')
+                                ->where('status', 'pending')
+                                ->latest()
+                                ->get();
+
+        return view('dashboards.manager', compact('totalItems', 'lowStockCount', 'recentTransactions', 'ongoingRestocks', 'pendingTransactions'));
     }
 
     // Data dan view untuk dashboard Staff Gudang.
@@ -90,8 +95,8 @@ class DashboardController extends Controller
         $shipmentHistory = RestockOrder::select('restock_orders.*', 'users.name as manager_name')
             ->join('users', 'restock_orders.manager_id', '=', 'users.id')
             ->where('restock_orders.supplier_id', $user->id)
-            ->where('restock_orders.status', 'received')
-            ->latest('restock_orders.created_at')
+            ->where('restock_orders.status', '!=', 'pending')
+            ->latest('restock_orders.updated_at')
             ->paginate(5);
 
         return view('dashboards.supplier', compact('pendingConfirmationOrders', 'shipmentHistory'));

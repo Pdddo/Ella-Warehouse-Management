@@ -31,7 +31,7 @@ class RestockOrderController extends Controller
         return view('restock_orders.create', compact('suppliers', 'products'));
     }
 
-    // Menyimpan pesanan restock baru ke database. (Tanpa 'unit')
+    // Menyimpan pesanan restock baru ke database.
     public function store(Request $request)
     {
         $request->validate([

@@ -1,3 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --background: 0 0% 3%; /* #08080c converted approx */
+  --foreground: 210 40% 98%;
+  --card: 240 10% 4%; /* #0a0a0f */
+  --card-foreground: 210 40% 98%;
+  --popover: 240 10% 4%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 263 70% 50%; /* Violet */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 240 4% 16%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 240 4% 16%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 263 70% 50%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 240 4% 16%;
+  --input: 240 4% 16%;
+  --ring: 263 70% 50%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-[#08080c] text-slate-300 antialiased font-sans selection:bg-violet-500/30;
+  }
+}
+
+/* Custom Animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.5s ease-out; }
+
+/* Hide scrollbar */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

@@ -16,20 +16,55 @@ class ProductController extends Controller
     // Menampilkan daftar semua produk dengan fungsionalitas pencarian dan paginasi.
     public function index(Request $request)
     {
-        $query = Product::with('category')->latest();
+        $query = Product::with('category');
 
-        // Logika untuk pencarian berdasarkan nama atau SKU
-        if ($search = $request->input('search')) {
-            $query->where('name', 'like', "%{$search}%")
+        // pencarian (Search)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
                   ->orWhere('sku', 'like', "%{$search}%");
+            });
         }
 
-        // menghitung total stok
-        $totalStock = Product::sum('stock');
+        // Filter Kategori
+        if ($request->filled('category')) {
+            $query->where('category_id', $request->category);
+        }
 
-        $products = $query->paginate(10)->withQueryString();
+        // Filter Status Stok
+        if ($request->filled('stock_status')) {
+            if ($request->stock_status == 'out_of_stock') {
+                $query->where('stock', 0);
+            } elseif ($request->stock_status == 'low_stock') {
+                // Asumsi low stock adalah <= min_stock (jika ada) atau <= 10
+                $query->where('stock', '>', 0)
+                      ->whereRaw('stock <= min_stock'); 
+            } elseif ($request->stock_status == 'available') {
+                $query->whereRaw('stock > min_stock');
+            }
+        }
 
-        return view('products.index', compact('products', 'totalStock'));
+        // Sorting
+        if ($request->filled('sort')) {
+            switch ($request->sort) {
+                case 'name_asc': $query->orderBy('name', 'asc'); break;
+                case 'name_desc': $query->orderBy('name', 'desc'); break;
+                case 'stock_asc': $query->orderBy('stock', 'asc'); break;
+                case 'stock_desc': $query->orderBy('stock', 'desc'); break;
+                case 'oldest': $query->orderBy('created_at', 'asc'); break;
+                default: $query->latest(); break; // Default 'latest'
+            }
+        } else {
+            $query->latest();
+        }
+
+        $products = $query->paginate(10)->appends($request->all());
+        
+        // untuk dropdown filter
+        $categories = \App\Models\Category::orderBy('name')->get();
+        
+        return view('products.index', compact('products', 'categories'));
     }
 
 
