@@ -18,18 +18,18 @@ class RoleMiddleware
             // Jika belum login, langsung usir ke halaman login.
             return redirect('login');
         }
-        
-        // Ambil data lengkap pengguna yang sedang login.
+
+        // Ambil data lengkap pengguna yang login.
         $user = Auth::user();
 
-        // ATURAN 2: Cocokkan role pengguna dengan daftar yang diizinkan.
+        // Cocokkan role pengguna dengan daftar yang diizinkan.
         foreach ($roles as $role) {
-            
+
             if ($user->role === $role) {
                 return $next($request);
             }
         }
 
-        return redirect('/dashboard')->with('error', 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        return back()->with('error', 'Anda tidak memiliki izin untuk mengakses halaman ini.');
     }
 }

@@ -37,7 +37,7 @@
                     </button>
                 </div>
             @endif
-            
+
             {{-- Notifikasi Restock (HANYA UNTUK STAFF) --}}
             @if(auth()->user()->role === 'staff' && isset($receivedOrders) && $receivedOrders->count() > 0)
             <div class="mb-8 p-6 bg-[#0a0a0f]/60 backdrop-blur-xl border border-emerald-500/30 rounded-2xl shadow-[0_0_30px_-10px_rgba(16,185,129,0.2)] relative overflow-hidden">
@@ -56,7 +56,7 @@
                     </div>
                     <div class="flex flex-wrap gap-2">
                         @foreach($receivedOrders as $order)
-                            <a href="{{ route('transactions.create.incoming', ['restock_order_id' => $order->id]) }}" 
+                            <a href="{{ route('transactions.create.incoming', ['restock_order_id' => $order->id]) }}"
                                class="px-4 py-2 text-xs font-bold rounded-lg bg-emerald-500 hover:bg-emerald-400 text-[#0a0a0f] transition-all shadow-lg hover:shadow-emerald-500/20 flex items-center gap-2">
                                 <span>Proses #{{ $order->po_number }}</span>
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
@@ -72,15 +72,15 @@
                     <h3 class="text-2xl font-bold text-white">Transaksi Gudang</h3>
                     <p class="text-slate-400 text-sm">Kelola arus barang masuk dan keluar</p>
                 </div>
-                
+
                 <div class="flex items-center gap-3 bg-[#0a0a0f]/60 p-1 rounded-xl border border-white/10">
-                    <button @click="activeTab = 'incoming'" 
+                    <button @click="activeTab = 'incoming'"
                         :class="activeTab === 'incoming' ? 'bg-emerald-500/20 text-emerald-400 shadow-lg' : 'text-slate-400 hover:text-white'"
                         class="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                         Masuk
                     </button>
-                    <button @click="activeTab = 'outgoing'" 
+                    <button @click="activeTab = 'outgoing'"
                         :class="activeTab === 'outgoing' ? 'bg-rose-500/20 text-rose-400 shadow-lg' : 'text-slate-400 hover:text-white'"
                         class="px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
@@ -101,13 +101,13 @@
             {{-- Form Filter & Search --}}
             <div class="mb-8">
                 <form method="GET" action="{{ route('transactions.index') }}" class="p-4 bg-[#0a0a0f]/60 border border-white/5 rounded-2xl flex flex-col md:flex-row gap-4 items-end">
-                    
+
                     {{-- Search --}}
                     <div class="w-full md:flex-1">
                         <label for="search" class="block text-xs font-medium text-slate-400 mb-1">Cari Supplier / Customer</label>
                         <div class="relative">
-                            <input type="text" name="search" value="{{ request('search') }}" 
-                                class="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0f] border border-white/10 rounded-xl text-sm text-white focus:ring-violet-500 focus:border-violet-500 placeholder-slate-600" 
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                class="w-full pl-10 pr-4 py-2.5 bg-[#0a0a0f] border border-white/10 rounded-xl text-sm text-white focus:ring-violet-500 focus:border-violet-500 placeholder-slate-600"
                                 placeholder="Nama Supplier, Customer, atau No. Transaksi...">
                             <svg class="w-4 h-4 text-slate-500 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </div>
@@ -116,7 +116,7 @@
                     {{-- Filter: Tanggal --}}
                     <div class="w-full md:w-auto">
                         <label for="transaction_date" class="block text-xs font-medium text-slate-400 mb-1">Tanggal</label>
-                        <input type="date" name="transaction_date" value="{{ request('transaction_date') }}" 
+                        <input type="date" name="transaction_date" value="{{ request('transaction_date') }}"
                             class="w-full bg-[#0a0a0f] border border-white/10 rounded-xl text-sm text-white focus:ring-violet-500 focus:border-violet-500">
                     </div>
 
@@ -137,7 +137,7 @@
                     <button type="submit" class="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl transition-colors">
                         Filter
                     </button>
-                    
+
                     {{-- Tombol Reset --}}
                     @if(request()->hasAny(['search', 'status', 'transaction_date']))
                         <a href="{{ route('transactions.index') }}" class="px-4 py-2.5 text-slate-400 hover:text-white transition-colors">
@@ -148,7 +148,7 @@
             </div>
 
             <div x-show="activeTab === 'incoming'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
-                
+
                 <div class="mb-4 flex items-center gap-2 text-emerald-400">
                     <div class="w-2 h-8 bg-emerald-500 rounded-full"></div>
                     <h4 class="text-lg font-bold text-white">Riwayat Barang Masuk</h4>
@@ -205,7 +205,7 @@
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                             </a>
 
-                                            {{-- [BARU] Tombol Edit (Hanya jika Pending) --}}
+                                            {{-- tombol edit--}}
                                             @if($transaction->status === 'pending')
                                                 <a href="{{ route('transactions.edit', $transaction) }}" class="text-slate-400 hover:text-blue-400 transition-colors p-1" title="Edit">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -224,7 +224,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     @if($incoming->hasPages())
                     <div class="px-6 py-4 border-t border-white/5">
                         {{ $incoming->links() }}
@@ -234,7 +234,7 @@
             </div>
 
             <div x-show="activeTab === 'outgoing'" style="display: none;" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100">
-                
+
                 <div class="mb-4 flex items-center gap-2 text-rose-400">
                     <div class="w-2 h-8 bg-rose-500 rounded-full"></div>
                     <h4 class="text-lg font-bold text-white">Riwayat Barang Keluar</h4>
@@ -290,7 +290,7 @@
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                             </a>
 
-                                            {{-- [BARU] Tombol Edit (Hanya jika Pending) --}}
+                                            {{-- Tombol Edit --}}
                                             @if($transaction->status === 'pending')
                                                 <a href="{{ route('transactions.edit', $transaction) }}" class="text-slate-400 hover:text-blue-400 transition-colors p-1" title="Edit">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -309,7 +309,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     @if($outgoing->hasPages())
                     <div class="px-6 py-4 border-t border-white/5">
                         {{ $outgoing->links() }}

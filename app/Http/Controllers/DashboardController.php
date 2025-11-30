@@ -12,9 +12,8 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
-    /**
-     * Menentukan dashboard mana yang akan ditampilkan berdasarkan peran pengguna.
-     */
+
+    //Menentukan dashboard mana yang akan ditampilkan berdasarkan peran pengguna.
     public function index()
     {
         $role = Auth::user()->role;
@@ -50,12 +49,14 @@ class DashboardController extends Controller
         return view('dashboards.admin', compact('totalProducts', 'transactionsThisMonth', 'totalStockValue', 'lowStockProducts', 'pendingSuppliers'));
     }
 
+
+
     // Data dan view untuk dashboard Warehouse Manager.
     private function managerDashboard()
     {
         $totalItems = Product::sum('stock');
         $lowStockCount = Product::whereColumn('stock', '<=', 'min_stock')->count();
-        
+
         $recentTransactions = Transaction::with('user')->latest()->take(5)->get();
 
         $ongoingRestocks = RestockOrder::whereIn('status', ['pending', 'confirmed', 'in_transit'])->latest()->get();
@@ -75,12 +76,11 @@ class DashboardController extends Controller
                                         ->whereDate('created_at', today())
                                         ->latest()
                                         ->get();
-        
+
         return view('dashboards.staff', compact('todayTransactions'));
     }
 
     // Data dan view untuk dashboard Supplier.
-    
     private function supplierDashboard()
     {
         $user = Auth::user();
@@ -106,7 +106,7 @@ class DashboardController extends Controller
     public function approveSupplier($id)
     {
         $user = User::findOrFail($id);
-        
+
         //pastikan dulu user tersebut betul supplier
         if ($user->role !== 'supplier') {
             return back()->with('error', 'User ini bukan supplier.');

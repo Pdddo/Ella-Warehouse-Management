@@ -31,19 +31,19 @@ class RestockOrder extends Model
             'expected_delivery_date' => 'date',
         ];
     }
-    // Relasi: Restock order dibuat oleh satu manager (user)
+    // restock order dibuat oleh satu manager (dimiliki oleh)
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
     }
 
-    // Relasi: Restock order diterima dari satu supplier (user)
+    // restock order diterima dari satu supplier (dimiliki oleh)
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(User::class, 'supplier_id');
     }
 
-    // Relasi: Satu restock order memiliki banyak detail produk
+    // restock order memiliki banyak detail produk (memiliki banyak)
     public function details(): HasMany
     {
         return $this->hasMany(RestockOrderDetail::class);

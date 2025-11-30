@@ -79,12 +79,14 @@ class RestockOrderController extends Controller
     // Menampilkan form untuk mengedit pesanan restock.
     public function edit(RestockOrder $restockOrder)
     {
-        // Aturan Bisnis: Hanya order 'pending' yang boleh diedit.
+        // cek terlebih dulu. cuma order 'pending' yang boleh diedit.
         if ($restockOrder->status !== 'pending') {
             return redirect()->route('restock-orders.show', $restockOrder)->with('error', 'Hanya order dengan status "pending" yang dapat diedit.');
         }
 
-        $restockOrder->load('details'); // Muat detail yang ada
+        $restockOrder->load('details'); // Muat detail
+
+        // untuk dropdown supplier
         $suppliers = User::where('role', 'supplier')->orderBy('name')->get();
         $products = Product::orderBy('name')->get();
 
@@ -93,7 +95,7 @@ class RestockOrderController extends Controller
 
     public function update(Request $request, RestockOrder $restockOrder)
     {
-        // Aturan Bisnis: Hanya order 'pending' yang boleh diupdate.
+        // hanya order 'pending' yang boleh diupdate.
         if ($restockOrder->status !== 'pending') {
             return redirect()->route('restock-orders.show', $restockOrder)->with('error', 'Hanya order dengan status "pending" yang dapat diupdate.');
         }
@@ -119,7 +121,7 @@ class RestockOrderController extends Controller
                 'notes' => $request->notes,
             ]);
 
-            // Sinkronisasi detail produk: hapus yang lama, buat yang baru.
+            // Sinkronisasi detail produk hapus yang lama, buat yang baru.
             $restockOrder->details()->delete();
             foreach ($request->products as $product) {
                 $restockOrder->details()->create([
@@ -140,12 +142,12 @@ class RestockOrderController extends Controller
 
     public function storeRating(Request $request, RestockOrder $restockOrder)
     {
-        // Validasi: Pastikan user adalah manager (sudah dihandle middleware, tapi double check aman)
+        // cek role, yang boleh rating cuma manager
         if (auth()->user()->role !== 'manager') {
             abort(403);
         }
 
-        // Validasi: Sesuai modul, rating hanya boleh jika status "Received"
+        // rating hanya boleh dilakukan jika status "Received"
         if ($restockOrder->status !== 'received') {
             return back()->with('error', 'Rating hanya dapat diberikan setelah barang diterima (Status: Received).');
         }
@@ -180,7 +182,7 @@ class RestockOrderController extends Controller
         $request->validate([
             'status' => 'required|in:pending,confirmed,in_transit,received,cancelled'
         ]);
-        
+
         $restockOrder->update(['status' => $request->status]);
 
         return redirect()->route('restock-orders.index')->with('success', 'Status order berhasil diubah menjadi ' . ucfirst($request->status) . '.');

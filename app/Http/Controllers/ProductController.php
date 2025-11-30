@@ -12,8 +12,8 @@ use Intervention\Image\Laravel\Facades\Image;
 
 class ProductController extends Controller
 {
-    
-    // Menampilkan daftar semua produk dengan fungsionalitas pencarian dan paginasi.
+
+    // Menampilkan daftar semua produk dengan fungsionalitas pencarian dan filter
     public function index(Request $request)
     {
         $query = Product::with('category');
@@ -37,9 +37,9 @@ class ProductController extends Controller
             if ($request->stock_status == 'out_of_stock') {
                 $query->where('stock', 0);
             } elseif ($request->stock_status == 'low_stock') {
-                // Asumsi low stock adalah <= min_stock (jika ada) atau <= 10
+                // low stock itu stock <= min_stock
                 $query->where('stock', '>', 0)
-                      ->whereRaw('stock <= min_stock'); 
+                      ->whereRaw('stock <= min_stock');
             } elseif ($request->stock_status == 'available') {
                 $query->whereRaw('stock > min_stock');
             }
@@ -53,23 +53,24 @@ class ProductController extends Controller
                 case 'stock_asc': $query->orderBy('stock', 'asc'); break;
                 case 'stock_desc': $query->orderBy('stock', 'desc'); break;
                 case 'oldest': $query->orderBy('created_at', 'asc'); break;
-                default: $query->latest(); break; // Default 'latest'
+                default: $query->latest();
+
+                break;
             }
         } else {
             $query->latest();
         }
 
         $products = $query->paginate(10)->appends($request->all());
-        
+
         // untuk dropdown filter
         $categories = \App\Models\Category::orderBy('name')->get();
-        
+
         return view('products.index', compact('products', 'categories'));
     }
 
 
     // Menampilkan form untuk membuat produk baru.
-    // Mengirimkan data kategori untuk pilihan dropdown.
     public function create()
     {
         $categories = Category::orderBy('name')->get();
@@ -107,15 +108,15 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
     }
 
-    
+
     // Menampilkan detail satu produk.
     public function show(Product $product)
     {
-        // Eager load relasi untuk ditampilkan di halaman detail
+        // Eager load data yang akan ditampilkan di halaman detail
         $product->load(['category', 'transactionDetails.transaction' => function ($query) {
             $query->latest()->limit(5);
         }]);
-        
+
         return view('products.show', compact('product'));
     }
 
@@ -126,11 +127,11 @@ class ProductController extends Controller
         return view('products.edit', compact('product', 'categories'));
     }
 
-    
+
     // Mengupdate data produk di database.
     public function update(Request $request, Product $product)
     {
-        // Validasi (SKU tidak dapat diubah)
+        // Validasi (SKU tidak boleh diubah)
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -159,7 +160,7 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
     }
 
-    
+
     // Menghapus produk dari database
     public function destroy(Product $product)
     {

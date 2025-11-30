@@ -11,10 +11,10 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 
-        'email', 
-        'password', 
-        'role', 
+        'name',
+        'email',
+        'password',
+        'role',
         'is_approved',
     ];
 
@@ -31,19 +31,19 @@ class User extends Authenticatable
         ];
     }
 
-    // Relasi untuk manager yang membuat restock order
+    // Relasi untuk manager yang membuat restock order (memiliki banyak)
     public function createdRestockOrders()
     {
         return $this->hasMany(RestockOrder::class, 'manager_id');
     }
 
-    // Relasi untuk supplier yang menerima restock order
+    // Relasi untuk supplier yang menerima restock order (memiliki banyak)
     public function receivedRestockOrders()
     {
         return $this->hasMany(RestockOrder::class, 'supplier_id');
     }
 
-    // Relasi untuk staff yang membuat transaksi
+    // Relasi untuk staff yang membuat transaksi (memiliki banyak)
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'user_id');

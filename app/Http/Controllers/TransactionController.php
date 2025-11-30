@@ -50,6 +50,7 @@ class TransactionController extends Controller
             ->paginate(10, ['*'], 'outgoing_page')
             ->appends($request->all());
 
+        // cek restock order yang sudah received tapi belum diproses
         $receivedOrders = RestockOrder::with('supplier')
             ->where('status', 'received')
             ->whereNull('processed_at')
@@ -62,13 +63,19 @@ class TransactionController extends Controller
     {
         $suppliers = User::where('role', 'supplier')->orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+
+        // prefill
+        // mengecek apakah ada data di url restock_order_id?
         $prefilledOrder = null;
         if ($request->has('restock_order_id')) {
+            // jiak iya, ambil id restock order tersebut dengan detail produknya
             $prefilledOrder = RestockOrder::with('details.product')->find($request->query('restock_order_id'));
         }
         return view('transactions.create_incoming', compact('suppliers', 'products', 'prefilledOrder'));
     }
 
+
+    // menyimpan transaksi barang masuk
     public function storeIncoming(Request $request)
     {
         $request->validate([
@@ -90,12 +97,14 @@ class TransactionController extends Controller
                 'supplier_id'      => $request->supplier_id,
             ]);
 
+            // simpan detail produk
             foreach ($request->products as $product) {
                 $transaction->details()->create(
                     ['product_id' => $product['id'],
                     'quantity' => $product['quantity']]);
             }
 
+            // simpan detail item
             if ($request->filled('restock_order_id')) {
                 $restockOrder = RestockOrder::find($request->restock_order_id);
                 if ($restockOrder) {
@@ -107,19 +116,22 @@ class TransactionController extends Controller
 
             DB::commit();
             return redirect()->route('transactions.index')->with('success', 'Transaksi barang masuk berhasil dibuat dan menunggu persetujuan.');
-        } 
-        
+        }
+
         catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Gagal membuat transaksi: ' . $e->getMessage())->withInput();
         }
     }
 
+    // membuat transaksi otomatis dari restock order yang sudah received
     public function createFromRestock(RestockOrder $restockOrder)
     {
+        // cek restock order belum pernah diproses
         if ($restockOrder->processed_at) {
             return redirect()->route('transactions.index')->with('error', 'Restock Order ini sudah pernah diproses sebelumnya.');
         }
+        // cek statusnya "Received"
         if ($restockOrder->status !== 'received') {
             return redirect()->route('transactions.index')->with('error', 'Hanya Restock Order dengan status "Received" yang bisa diproses.');
         }
@@ -133,8 +145,12 @@ class TransactionController extends Controller
                 'notes'            => 'Transaksi otomatis dari Restock Order ' . $restockOrder->po_number,
                 'supplier_id'      => $restockOrder->supplier_id,
             ]);
+
+            // simpan detail produk dari restock order
             foreach ($restockOrder->details as $detail) {
-                $transaction->details()->create(['product_id' => $detail->product_id, 'quantity' => $detail->quantity]);
+                $transaction->details()->create(
+                    ['product_id' => $detail->product_id,
+                    'quantity' => $detail->quantity]);
             }
             $restockOrder->update(['processed_at' => now()]);
             DB::commit();
@@ -144,16 +160,20 @@ class TransactionController extends Controller
             return redirect()->route('transactions.index')->with('error', 'Gagal membuat transaksi otomatis: ' . $e->getMessage());
         }
     }
-    
+
     public function show(Transaction $transaction)
     {
         $transaction->load('user', 'supplier', 'details.product', 'approvedBy');
         return view('transactions.show', compact('transaction'));
     }
 
+    // menyetujui transaksi dan memperbarui stok
     public function approve(Transaction $transaction)
     {
+        // cek role user
         if (!in_array(Auth::user()->role, ['manager', 'admin'])) { abort(403, 'Hanya Manager atau Admin yang dapat menyetujui transaksi.');}
+
+        // hanya transaksi dengan status pending yang boleh disetujui
         if ($transaction->status !== 'pending') {
             return back()->with('error', 'Transaksi ini tidak lagi dalam status pending.');
         }
@@ -164,6 +184,8 @@ class TransactionController extends Controller
                 'approved_by' => Auth::id(),
                 'approved_at' => now(),
             ]);
+
+            // perbarui stok produk sesuai tipe transaksi
             foreach ($transaction->details as $detail) {
                 if ($transaction->type === 'incoming') {
                     $detail->product->increment('stock', $detail->quantity);
@@ -179,6 +201,7 @@ class TransactionController extends Controller
         }
     }
 
+    // menampilkan form untuk membuat transaksi barang keluar
     public function createOutgoing()
     {
         // Hanya ambil produk yang stoknya > 0
@@ -186,6 +209,7 @@ class TransactionController extends Controller
         return view('transactions.create_outgoing', compact('products'));
     }
 
+    // menyimpan transaksi barang keluar
     public function storeOutgoing(Request $request)
     {
         $request->validate([
@@ -205,20 +229,20 @@ class TransactionController extends Controller
                 'user_id'          => Auth::id(),
                 'type'             => 'outgoing',
                 'status'           => 'pending',
-                'customer_name'    => $request->customer_name, 
-                'notes'            => $request->notes, 
+                'customer_name'    => $request->customer_name,
+                'notes'            => $request->notes,
             ]);
 
             foreach ($request->products as $item) {
                 $product = Product::find($item['id']);
-                
+
                 // Cek stok
                 if ($product->stock < $item['quantity']) {
                     throw new \Exception("Stok barang {$product->name} tidak mencukupi (Tersedia: {$product->stock}).");
                 }
 
                 $transaction->details()->create([
-                    'product_id' => $item['id'], 
+                    'product_id' => $item['id'],
                     'quantity'   => $item['quantity']
                 ]);
             }
@@ -240,7 +264,7 @@ class TransactionController extends Controller
 
         // Eager load details dan product untuk ditampilkan di form
         $transaction->load('details.product', 'supplier');
-        
+
         // Ambil daftar produk untuk dropdown
         $products = Product::orderBy('name')->get();
 
@@ -249,7 +273,7 @@ class TransactionController extends Controller
 
     public function update(Request $request, Transaction $transaction)
     {
-        // Validasi Status Lagi (untuk keamanan ganda)
+        // cek Status Lagi (untuk keamanan ganda)
         if ($transaction->status !== 'pending') {
             return redirect()->route('transactions.index')->with('error', 'Transaksi tidak dapat diedit karena status bukan Pending.');
         }
@@ -264,18 +288,17 @@ class TransactionController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Update Catatan Utama
+            // Update Catatan Utama
             $transaction->update([
                 'notes' => $request->notes,
             ]);
 
-            // 2. Update Detail Produk (Cara paling bersih: Hapus lama -> Buat baru)
-            // Kita hapus detail lama
+            // Hapus detail lama
             $transaction->details()->delete();
 
-            // Kita buat detail baru dari input form
+            // buat detail baru dari input form
             foreach ($request->products as $item) {
-                // Validasi Stok Khusus Outgoing (Barang Keluar)
+                // Cek stok untuk transaksi keluar
                 if ($transaction->type === 'outgoing') {
                     $product = Product::find($item['id']);
                     if ($product->stock < $item['quantity']) {
@@ -314,7 +337,7 @@ class TransactionController extends Controller
 
         try {
             // Karena status pending, stok belum berubah, jadi aman langsung hapus
-            $transaction->details()->delete(); 
+            $transaction->details()->delete();
             $transaction->delete();
 
             return redirect()->route('transactions.index')->with('success', 'Transaksi berhasil dihapus.');

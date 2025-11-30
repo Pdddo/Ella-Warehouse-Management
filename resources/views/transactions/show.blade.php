@@ -7,7 +7,7 @@
 
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-            
+
             <div class="flex justify-between items-center mb-6">
                 <a href="{{ route('transactions.index') }}" class="inline-flex items-center text-slate-400 hover:text-white transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
@@ -15,11 +15,10 @@
                 </a>
             </div>
 
-            {{-- Notifikasi Sukses/Error (Global) --}}
             @include('partials.alert')
 
             <div class="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl overflow-hidden">
-                
+
                 {{-- Header Card --}}
                 <div class="p-8 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/5">
                     <div>
@@ -29,7 +28,7 @@
                             {{ $transaction->created_at->format('d F Y, H:i') }}
                         </p>
                     </div>
-                    
+
                     <div class="flex flex-col items-end gap-2">
                         {{-- Badge Tipe Transaksi --}}
                         @if($transaction->type == 'incoming')
@@ -175,7 +174,7 @@
                             <div>
                                 <p class="text-emerald-400 font-bold text-sm">Transaksi Telah Disetujui</p>
                                 <p class="text-slate-400 text-xs">
-                                    Disetujui oleh <span class="text-white font-medium">{{ $transaction->approvedBy->name ?? 'Manager' }}</span> 
+                                    Disetujui oleh <span class="text-white font-medium">{{ $transaction->approvedBy->name ?? 'Manager' }}</span>
                                     pada {{ $transaction->updated_at->format('d F Y, H:i') }}
                                 </p>
                             </div>

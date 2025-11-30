@@ -7,7 +7,7 @@
 
     <div class="py-12">
         <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
-            
+
             <a href="{{ route('products.index') }}" class="inline-flex items-center text-slate-400 hover:text-white mb-6 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                 Back to List
@@ -15,7 +15,7 @@
 
             <div class="bg-[#0a0a0f]/60 backdrop-blur-xl border border-white/5 rounded-3xl shadow-2xl overflow-hidden">
                 <div class="md:flex">
-                    
+
                     <div class="md:w-1/3 bg-black/20 p-8 flex items-center justify-center border-r border-white/5">
                         @if($product->image)
                             <img src="{{ asset('storage/' . $product->image) }}" class="rounded-xl shadow-lg max-h-80 object-cover" alt="{{ $product->name }}">
@@ -35,7 +35,7 @@
                                 <h1 class="text-3xl font-bold text-white mb-1">{{ $product->name }}</h1>
                                 <p class="text-slate-400 text-sm font-mono tracking-wide">SKU: {{ $product->sku }}</p>
                             </div>
-                            
+
                             {{-- Stok Utama Badge --}}
                             <div class="text-right">
                                 <span class="px-4 py-2 rounded-xl text-sm font-bold border {{ $product->stock > $product->min_stock ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20' }}">
@@ -45,7 +45,7 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-6 mt-8 p-6 bg-white/5 rounded-2xl border border-white/5">
-                            
+
                             <div>
                                 <p class="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">Harga Jual</p>
                                 <p class="text-2xl font-mono text-emerald-400 font-bold">Rp {{ number_format($product->sell_price, 0, ',', '.') }}</p>
@@ -77,7 +77,7 @@
                             </p>
                         </div>
 
-                        {{-- [BARU] Riwayat 5 Transaksi Terakhir --}}
+                       {{-- tampilkan 5 transaksi terakhir  --}}
                         <div class="mt-8 pt-6 border-t border-white/5">
                             <h4 class="text-sm font-semibold text-slate-300 mb-4">Riwayat 5 Transaksi Terakhir</h4>
                             <div class="overflow-hidden rounded-xl border border-white/10">
@@ -126,7 +126,7 @@
                                 </table>
                             </div>
                         </div>
-                        {{-- Riwayat Transaksi --}}
+
 
                         @if(auth()->user()->role === 'admin' || auth()->user()->role === 'manager')
                         <div class="mt-8 flex gap-4">

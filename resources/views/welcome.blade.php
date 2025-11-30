@@ -4,75 +4,67 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Ella WMS') }}</title>
-    
+
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&family=jetbrains-mono:400,500&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="antialiased font-sans bg-[#08080c] text-slate-300 selection:bg-violet-500/30 overflow-x-hidden">
+<body class="antialiased font-sans bg-[#08080c] text-slate-300 h-screen overflow-hidden flex flex-col">
 
-    <div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-[#56a09f]/10 rounded-full blur-[120px]"></div>
-        <div class="absolute top-[40%] right-[-10%] w-[500px] h-[500px] bg-[#56a09f]/10 rounded-full blur-[100px]"></div>
-        <div class="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] bg-[#56a09f]/10 rounded-full blur-[120px]"></div>
+    <div class="fixed inset-0 pointer-events-none z-0 flex items-center justify-center">
+        <div class="w-[800px] h-[800px] bg-[#56a09f]/5 rounded-full blur-[100px]"></div>
     </div>
 
-    <div class="relative z-10 min-h-screen flex flex-col">
-        
-        <nav class="w-full px-6 py-6 flex justify-between items-center max-w-7xl mx-auto">
-            <div class="flex items-center gap-3">
-                <img src="{{ asset('storage/images/ela.png') }}" alt="Ella WMS Logo" class="w-12 h-12" />
-                <span class="text-xl font-bold text-white tracking-tight">Ella</span>
-            </div>
+    <div class="relative z-10 flex-grow flex flex-col justify-center items-center px-6">
 
-            <div class="flex items-center gap-4">
+        <div class="mb-12 animate-fade-in-down">
+            <div class="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto shadow-[0_0_30px_-10px_rgba(86,160,159,0.3)]">
+                 <img src="{{ asset('storage/images/ela.png') }}" alt="Logo" class="w-10 h-10 object-contain" />
+            </div>
+        </div>
+
+        <div class="text-center max-w-2xl mx-auto space-y-8">
+
+
+            <h1 class="text-5xl md:text-7xl font-bold text-white tracking-tight leading-tight">
+                Ella<br>
+                <span class="text-slate-500">Armory Management</span>
+            </h1>
+
+            <p class="text-slate-400 text-lg md:text-xl font-light leading-relaxed max-w-lg mx-auto">
+                Atur logistik senjata anda. <br class="hidden md:block">
+                Sederhana, aman, dan mudah digunakan.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
                 @if (Route::has('login'))
                     @auth
-                        <a href="{{ url('/dashboard') }}" class="px-5 py-2.5 text-sm font-medium text-white bg-white/10 hover:bg-white/15 border border-white/10 rounded-xl transition-all">
-                            Dashboard
+                        <a href="{{ url('/dashboard') }}" class="group relative inline-flex items-center gap-2 text-white font-medium hover:text-[#56a09f] transition-colors">
+                            <span>Access Dashboard</span>
+                            <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="text-sm font-medium text-slate-300 hover:text-white transition-colors px-4">
-                            Log in
+                        <a href="{{ route('login') }}" class="min-w-[160px] px-6 py-3 bg-[#56a09f] hover:bg-[#4a8f8e] text-white font-semibold rounded-lg transition-all shadow-lg shadow-[#56a09f]/20 hover:scale-105">
+                            Log In
                         </a>
+
                         @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="px-5 py-2.5 text-sm font-medium text-white bg-[#56a09f] hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-500/25 transition-all hover:scale-105">
+                            <a href="{{ route('register') }}" class="min-w-[160px] px-6 py-3 bg-transparent border border-white/10 hover:border-[#56a09f]/50 text-slate-300 hover:text-white rounded-lg transition-all">
                                 Register
                             </a>
                         @endif
                     @endauth
                 @endif
             </div>
-        </nav>
-
-        <main class="flex-grow flex items-center justify-center px-6">
-            <div class="max-w-4xl mx-auto text-center">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[#56a09f] text-sm font-medium mb-6 animate-fade-in">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Armory Management System
-                </div>
-                
-                <h1 class="text-5xl md:text-7xl font-bold text-white tracking-tight mb-6 leading-tight">
-                    Modern Armory <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#56a09f] via-[#56a09f] to-emerald-200">Management System</span>
-                </h1>
-                
-                <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                    Pantau stok senjata, kelola transaksi masuk & keluar, serta atur pemesanan ulang ke supplier dalam satu platform yang cepat, aman, dan efisien.
-                </p>
-
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-4 bg-white text-[#08080c] font-bold rounded-xl hover:bg-slate-200 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2">
-                        Try it Now
-                    </a>
-                </div>
-            </div>
-        </main>
-
-        <footer class="py-8 text-center text-slate-500 text-sm">
-            <p>&copy; {{ date('Y') }} Ella Armory Management System. All rights reserved.</p>
-        </footer>
+        </div>
     </div>
+
+    <footer class="relative z-10 py-6 text-center">
+        <p class="text-xs text-slate-600 font-mono tracking-wide uppercase">
+            &copy; {{ date('Y') }} Ella Systems. Restricted Access.
+        </p>
+    </footer>
+
 </body>
 </html>

@@ -17,13 +17,13 @@ class RestockOrderDetail extends Model
         'unit',
     ];
 
-    // Mendefinisikan relasi "belongsTo" (milik dari).
+    // relasi dengan restock order (milik dari).
     public function restockOrder(): BelongsTo
     {
         return $this->belongsTo(RestockOrder::class);
     }
 
-    // Mendefinisikan relasi "belongsTo" (milik dari).
+    // relasi dengan produk (milik dari).
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

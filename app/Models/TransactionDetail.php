@@ -10,13 +10,13 @@ class TransactionDetail extends Model
 
     protected $fillable = ['transaction_id', 'product_id', 'quantity'];
 
-    // Relasi: Detail ini milik satu transaksi
+    // detail ini milik satu transaksi (milik dari)
     public function transaction()
     {
         return $this->belongsTo(Transaction::class);
     }
 
-    // Relasi: Detail ini merujuk ke satu produk
+    // detail produk merujuk ke satu produk (milik dari)
     public function product()
     {
         return $this->belongsTo(Product::class);
